@@ -9,30 +9,48 @@ local F = TFJ_F4
 
 local cvClassique = CreateClientConVar("tfj_f4_classique", "0", true, false, "TFJ : 1 = ancien affichage du F4")
 
-local OR = Color(217, 164, 65)
-local ROUGE = Color(192, 57, 43)
-local ROUGE_FONCE = Color(142, 34, 25)
-local ENCRE = Color(20, 17, 14)
-local GRIS = Color(91, 86, 80)
-local PAPIER = Color(239, 228, 204)
-local TEXTE2 = Color(168, 159, 146)
-local PANNEAU = Color(26, 22, 18, 228)
+-- palette : noir, rouge, blanc
+local OR = Color(236, 233, 228)          -- (blanc) techniques apprises, accents clairs
+local ROUGE = Color(176, 26, 26)
+local ROUGE_FONCE = Color(104, 14, 14)
+local ENCRE = Color(8, 8, 8)
+local GRIS = Color(74, 74, 74)
+local PAPIER = Color(244, 244, 244)
+local TEXTE2 = Color(150, 150, 150)
+local PANNEAU = Color(11, 11, 11, 242)
+local BORD = Color(60, 60, 60)
+local BORD_INT = Color(26, 26, 26)
 local VERT = Color(95, 168, 102)
 local MAT_GLOW = Material("sprites/light_glow02_add")
 local MAT_DEGRADE = Material("vgui/gradient-d")
 
 local function VH() return ScrH() / 100 end
+-- la police Philosopher est telechargee a la connexion ; si elle manque encore, on garde Poppins
+local function PoliceDispo(sNom)
+    surface.CreateFont("TFJF4::TestA", { font = sNom, size = 40, extended = true })
+    surface.CreateFont("TFJF4::TestB", { font = "TFJ_police_inexistante", size = 40, extended = true })
+    surface.SetFont("TFJF4::TestA") local a = surface.GetTextSize("Favoris Combat Tristesse")
+    surface.SetFont("TFJF4::TestB") local b = surface.GetTextSize("Favoris Combat Tristesse")
+    return a ~= b
+end
 local function Polices()
     local v = VH()
-    surface.CreateFont("TFJF4::Gros", { font = "Poppins", size = math.Round(v * 4.2), weight = 800, extended = true })
-    surface.CreateFont("TFJF4::Titre", { font = "Poppins", size = math.Round(v * 2.1), weight = 700, extended = true })
-    surface.CreateFont("TFJF4::Texte", { font = "Poppins", size = math.Round(v * 1.45), weight = 500, extended = true })
-    surface.CreateFont("TFJF4::Gras", { font = "Poppins", size = math.Round(v * 1.45), weight = 700, extended = true })
-    surface.CreateFont("TFJF4::Petit", { font = "Poppins", size = math.Round(v * 1.15), weight = 500, extended = true })
-    surface.CreateFont("TFJF4::Mini", { font = "Poppins", size = math.Round(v * 1.0), weight = 700, extended = true })
+    local sP = PoliceDispo("Philosopher") and "Philosopher" or "Poppins"
+    F.sPolice = sP
+    surface.CreateFont("TFJUI::Titre", { font = sP, size = math.Round(v * 3.4), weight = 700, extended = true })
+    surface.CreateFont("TFJUI::Sous", { font = sP, size = math.Round(v * 2.0), weight = 700, extended = true })
+    surface.CreateFont("TFJUI::Texte", { font = sP, size = math.Round(v * 1.6), weight = 700, extended = true })
+    surface.CreateFont("TFJUI::Petit", { font = sP, size = math.Round(v * 1.25), weight = 700, extended = true })
+    surface.CreateFont("TFJF4::Gros", { font = sP, size = math.Round(v * 4.2), weight = 800, extended = true })
+    surface.CreateFont("TFJF4::Titre", { font = sP, size = math.Round(v * 2.1), weight = 700, extended = true })
+    surface.CreateFont("TFJF4::Texte", { font = sP, size = math.Round(v * 1.45), weight = 500, extended = true })
+    surface.CreateFont("TFJF4::Gras", { font = sP, size = math.Round(v * 1.45), weight = 700, extended = true })
+    surface.CreateFont("TFJF4::Petit", { font = sP, size = math.Round(v * 1.15), weight = 500, extended = true })
+    surface.CreateFont("TFJF4::Mini", { font = sP, size = math.Round(v * 1.0), weight = 700, extended = true })
 end
 Polices()
 hook.Add("OnScreenSizeChanged", "TFJ.F4.Polices", Polices)
+hook.Add("InitPostEntity", "TFJ.F4.Polices", function() timer.Simple(3, Polices) end)
 
 -- ------------------------------------------------------------------ outils de dessin
 local tCercles = {}
@@ -59,9 +77,28 @@ local function Ligne(x1, y1, x2, y2, ep, col)
     surface.SetDrawColor(col)
     surface.DrawTexturedRectRotated((x1 + x2) / 2, (y1 + y2) / 2, l, ep, -math.deg(math.atan2(dy, dx)))
 end
+local function Grain(x, y, w, h, a)
+    local m = TFJ_F4.Img and TFJ_F4.Img.grain
+    if not m then return end
+    surface.SetMaterial(m)
+    surface.SetDrawColor(255, 255, 255, a or 10)
+    surface.DrawTexturedRectUV(x, y, w, h, 0, 0, w / 128, h / 128)
+end
 local function Carte(x, y, w, h, colBord)
-    draw.RoundedBox(math.Round(VH() * 0.4), x, y, w, h, colBord or Color(OR.r, OR.g, OR.b, 60))
-    draw.RoundedBox(math.Round(VH() * 0.4), x + 1, y + 1, w - 2, h - 2, PANNEAU)
+    surface.SetDrawColor(PANNEAU) surface.DrawRect(x, y, w, h)
+    Grain(x, y, w, h, 9)
+    surface.SetDrawColor(colBord or BORD) surface.DrawOutlinedRect(x, y, w, h, 1)
+    surface.SetDrawColor(BORD_INT) surface.DrawOutlinedRect(x + 3, y + 3, w - 6, h - 6, 1)
+end
+-- petit losange (facon curseurs de la capture)
+local function Losange(x, y, r, col, colBord)
+    draw.NoTexture()
+    if colBord then
+        surface.SetDrawColor(colBord)
+        surface.DrawPoly({ { x = x, y = y - r - 2 }, { x = x + r + 2, y = y }, { x = x, y = y + r + 2 }, { x = x - r - 2, y = y } })
+    end
+    surface.SetDrawColor(col)
+    surface.DrawPoly({ { x = x, y = y - r }, { x = x + r, y = y }, { x = x, y = y + r }, { x = x - r, y = y } })
 end
 local function Cadenas(x, y, s, col)
     surface.SetDrawColor(col)
@@ -71,12 +108,9 @@ local function Cadenas(x, y, s, col)
     surface.DrawRect(x + s * 0.22, y - s * 0.45, s * 0.14, s * 0.42)
     surface.DrawRect(x - s * 0.36, y - s * 0.55, s * 0.72, s * 0.14)
 end
-F.Cercle, F.Ligne, F.Carte = Cercle, Ligne, Carte
+F.Cercle, F.Ligne, F.Carte, F.Grain, F.Losange = Cercle, Ligne, Carte, Grain, Losange
 
 -- ------------------------------------------------------------------ style ninja
-local BOIS = Color(86, 56, 33)
-local BOIS_CLAIR = Color(122, 82, 48)
-local PARCHEMIN = Color(33, 27, 21, 238)
 local function Img(s) return TFJ_F4.Img and TFJ_F4.Img[s] end
 local function DessinerImg(s, x, y, w, h, col, ang)
     local m = Img(s)
@@ -86,27 +120,17 @@ local function DessinerImg(s, x, y, w, h, col, ang)
     if ang then surface.DrawTexturedRectRotated(x, y, w, h, ang) else surface.DrawTexturedRect(x, y, w, h) end
     return true
 end
--- rouleau de bois (haut / bas d'un parchemin)
-local function Rouleau(x, y, w, ep)
-    draw.RoundedBox(ep / 2, x, y, w, ep, BOIS)
-    draw.RoundedBox(ep / 2, x + ep, y + 1, w - ep * 2, ep * 0.35, BOIS_CLAIR)
-    draw.RoundedBox(ep * 0.3, x - ep * 0.5, y - ep * 0.25, ep * 1.1, ep * 1.5, OR)
-    draw.RoundedBox(ep * 0.3, x + w - ep * 0.6, y - ep * 0.25, ep * 1.1, ep * 1.5, OR)
-end
--- parchemin : corps sombre + rouleaux en haut et en bas
+-- cadre d'un arbre : fond noir granuleux, double liseret, trait rouge en haut, losanges aux angles
 local function Parchemin(x, y, w, h)
     local v = VH()
-    draw.RoundedBox(math.Round(v * 0.4), x, y, w, h, Color(OR.r, OR.g, OR.b, 55))
-    draw.RoundedBox(math.Round(v * 0.4), x + 1, y + 1, w - 2, h - 2, PARCHEMIN)
+    Carte(x, y, w, h)
+    surface.SetDrawColor(ROUGE) surface.DrawRect(x + 1, y + 1, w - 2, 2)
     surface.SetMaterial(MAT_DEGRADE)
-    surface.SetDrawColor(0, 0, 0, 90)
-    surface.DrawTexturedRect(x + 1, y + h * 0.55, w - 2, h * 0.45 - 1)
-    -- liseres dores interieurs
-    surface.SetDrawColor(OR.r, OR.g, OR.b, 35)
-    surface.DrawOutlinedRect(x + v * 0.6, y + v * 0.9, w - v * 1.2, h - v * 1.8, 1)
-    local ep = math.max(6, v * 1.1)
-    Rouleau(x - v * 0.9, y - ep * 0.6, w + v * 1.8, ep)
-    Rouleau(x - v * 0.9, y + h - ep * 0.4, w + v * 1.8, ep)
+    surface.SetDrawColor(0, 0, 0, 120)
+    surface.DrawTexturedRect(x + 1, y + h * 0.6, w - 2, h * 0.4 - 1)
+    local r = math.max(3, v * 0.45)
+    Losange(x, y, r, ROUGE, ENCRE) Losange(x + w, y, r, ROUGE, ENCRE)
+    Losange(x, y + h, r, BORD, ENCRE) Losange(x + w, y + h, r, BORD, ENCRE)
 end
 F.Parchemin = Parchemin
 -- sceau rouge de chaque arbre
@@ -175,6 +199,24 @@ function F.Etat(p, tSkill, bHasNature)
     return "dispo", iNiv, iMax
 end
 local function CouleurEtat(s) return s == "appris" and OR or (s == "dispo" and ROUGE or GRIS) end
+
+-- ------------------------------------------------------------------ style partage avec les autres menus TFJ
+TFJ_UI = TFJ_UI or {}
+TFJ_UI.Couleurs = { ROUGE = ROUGE, ROUGE_FONCE = ROUGE_FONCE, NOIR = ENCRE, BLANC = PAPIER, GRIS = GRIS, TEXTE2 = TEXTE2, PANNEAU = PANNEAU, BORD = BORD, BORD_INT = BORD_INT }
+TFJ_UI.Cadre, TFJ_UI.Grain, TFJ_UI.Losange, TFJ_UI.Ligne = Carte, Grain, Losange, Ligne
+function TFJ_UI.Police() return F.sPolice or "Poppins" end
+-- bouton du style : fond noir ou rouge, liseret, texte blanc
+function TFJ_UI.Bouton(w, h, bSurvol, bRouge, sTexte, sFont)
+    surface.SetDrawColor(bRouge and (bSurvol and ROUGE or ROUGE_FONCE) or (bSurvol and Color(28, 28, 28) or Color(14, 14, 14))) surface.DrawRect(0, 0, w, h)
+    Grain(0, 0, w, h, 12)
+    surface.SetDrawColor((bRouge or bSurvol) and ROUGE or BORD) surface.DrawOutlinedRect(0, 0, w, h, 1)
+    if sTexte then draw.SimpleText(sTexte, sFont or "TFJUI::Texte", w / 2, h / 2, PAPIER, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER) end
+end
+-- en-tete facon "CATEGORIE / Favoris"
+function TFJ_UI.EnTete(x, y, sPetit, sGrand)
+    draw.SimpleText(string.upper(sPetit or ""), "TFJUI::Petit", x, y, ROUGE)
+    draw.SimpleText(sGrand or "", "TFJUI::Titre", x, y + VH() * 1.6, PAPIER)
+end
 
 -- ------------------------------------------------------------------ rond d'une technique
 local function PeindreNoeud(btn, tSkill, bHasNature)
@@ -295,12 +337,12 @@ function F.Habiller(vFrame, nID)
         surface.SetAlphaMultiplier(fA)
 
         -- voile : le jeu reste visible
-        surface.SetDrawColor(14, 12, 10, 205)
+        surface.SetDrawColor(6, 6, 6, 215)
         surface.DrawRect(0, 0, w, h)
         surface.SetMaterial(MAT_DEGRADE)
         surface.SetDrawColor(0, 0, 0, 160)
         surface.DrawTexturedRect(0, h * 0.5, w, h * 0.5)
-        DessinerImg("filigrane", w / 2, h * 0.55, h * 0.85, h * 0.85, Color(ROUGE.r, ROUGE.g, ROUGE.b, 16), 0)
+        DessinerImg("filigrane", w / 2, h * 0.55, h * 0.85, h * 0.85, Color(ROUGE.r, ROUGE.g, ROUGE.b, 18), 0)
         -- bandeau du haut : trait de pinceau rouge + shuriken
         local yB = v * 10.4
         Ligne(v * 3, yB, w / 2 - v * 3, yB, 2, Color(ROUGE.r, ROUGE.g, ROUGE.b, 150))
@@ -337,8 +379,8 @@ function F.Habiller(vFrame, nID)
                 draw.SimpleText(string.upper(sNom), "TFJF4::Titre", tx, y + v * 1.1, t.nature == false and TEXTE2 or OR)
                 draw.SimpleText(t.appris .. " / " .. t.n .. " techniques" .. (t.nature == false and "  ·  nature non ma\195\174tris\195\169e" or ""), "TFJF4::Petit", tx, y + v * 3.4, TEXTE2)
                 local bx, by, bw = x + v * 1.5, y + v * 5.4, cw - v * 3
-                draw.RoundedBox(0, bx, by, bw, 3, Color(GRIS.r, GRIS.g, GRIS.b, 120))
-                if t.appris > 0 then draw.RoundedBox(0, bx, by, bw * t.appris / t.n, 3, ROUGE) end
+                surface.SetDrawColor(BORD) surface.DrawRect(bx, by, bw, 2)
+                if t.appris > 0 then surface.SetDrawColor(ROUGE) surface.DrawRect(bx, by, bw * t.appris / t.n, 2) end
             end
         end
 
@@ -388,8 +430,7 @@ function F.Habiller(vFrame, nID)
             local bx2, by2 = w - v * 9.4 - bw2, v * 3.5
             b:SetPos(bx2, by2) b:SetSize(bw2, bh2)
             local bSurvol = b:IsHovered()
-            draw.RoundedBox(v, bx2, by2, bw2, bh2, Color(OR.r, OR.g, OR.b, bSurvol and 200 or 110))
-            draw.RoundedBox(v, bx2 + 1, by2 + 1, bw2 - 2, bh2 - 2, bSurvol and Color(40, 32, 22, 240) or PANNEAU)
+            Carte(bx2, by2, bw2, bh2, bSurvol and ROUGE or BORD)
             draw.SimpleText(sTxt, "TFJF4::Gras", bx2 + bw2 / 2, by2 + bh2 / 2, PAPIER, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
 
@@ -426,7 +467,7 @@ function F.HabillerEnfants(vFrame)
                 c:SetSize(v * 4.6, v * 4.6)
                 c:SetPos(vFrame:GetWide() - v * 7.6, v * 3.5)
                 c.Paint = function(self, w, h)
-                    draw.RoundedBox(v, 0, 0, w, h, self:IsHovered() and ROUGE or PANNEAU)
+                    Carte(0, 0, w, h, self:IsHovered() and ROUGE or BORD)
                     Ligne(w * 0.33, h * 0.33, w * 0.67, h * 0.67, 3, PAPIER)
                     Ligne(w * 0.67, h * 0.33, w * 0.33, h * 0.67, 3, PAPIER)
                 end
@@ -445,7 +486,10 @@ function F.HabillerEnfants(vFrame)
                         sText = (s2 ~= "") and "Relancer votre \195\169l\195\169ment" or "Choisissez votre seconde nature !"
                     end
                     local bS = self:IsHovered()
-                    draw.RoundedBox(h / 2, 0, 0, w, h, bS and ROUGE or ROUGE_FONCE)
+                    surface.SetDrawColor(bS and ROUGE or ROUGE_FONCE) surface.DrawRect(0, 0, w, h)
+                    Grain(0, 0, w, h, 12)
+                    surface.SetDrawColor(ROUGE) surface.DrawOutlinedRect(0, 0, w, h, 1)
+                    Losange(0, h / 2, h * 0.12, ROUGE, ENCRE) Losange(w, h / 2, h * 0.12, ROUGE, ENCRE)
                     draw.SimpleText(sText, "TFJF4::Gras", w / 2, h / 2, PAPIER, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
                 end
             -- barre d'onglets (DPanel contenant les boutons des categories)
@@ -460,10 +504,9 @@ function F.HabillerEnfants(vFrame)
                     c:SetY(v * 3)
                     c:SetX(math.Round(vFrame:GetWide() / 2 - c:GetWide() / 2))
                     c.Paint = function(self, w, h)
-                        draw.RoundedBox(v * 0.4, -v * 0.8, 0, w + v * 1.6, h, Color(OR.r, OR.g, OR.b, 70))
-                        draw.RoundedBox(v * 0.4, -v * 0.8 + 1, 1, w + v * 1.6 - 2, h - 2, PANNEAU)
-                        surface.SetDrawColor(OR.r, OR.g, OR.b, 30)
-                        surface.DrawOutlinedRect(-v * 0.4, v * 0.4, w + v * 0.8, h - v * 0.8, 1)
+                        local bClipO = DisableClipping(true)
+                        Carte(-v * 0.8, 0, w + v * 1.6, h)
+                        DisableClipping(bClipO)
                     end
                     for _, b in ipairs(tOnglets) do
                         local tCat = Upval(b.Paint, "tCategory")
@@ -478,9 +521,10 @@ function F.HabillerEnfants(vFrame)
                             self.fH = Lerp(FrameTime() * 10, self.fH or 0, self:IsHovered() and 1 or 0)
                             local hh = h - v * 1
                             if bActif then
-                                draw.RoundedBox(v * 0.3, 0, v * 0.5, w, hh, ROUGE)
-                                draw.RoundedBox(0, v * 0.6, h - v * 0.9, w - v * 1.2, 2, OR)
-                            elseif self.fH > 0.01 then draw.RoundedBox(v * 0.3, 0, v * 0.5, w, hh, Color(255, 255, 255, 18 * self.fH)) end
+                                surface.SetDrawColor(ROUGE_FONCE) surface.DrawRect(0, v * 0.5, w, hh)
+                                surface.SetDrawColor(ROUGE) surface.DrawOutlinedRect(0, v * 0.5, w, hh, 1)
+                                Grain(0, v * 0.5, w, hh, 12)
+                            elseif self.fH > 0.01 then surface.SetDrawColor(255, 255, 255, 14 * self.fH) surface.DrawRect(0, v * 0.5, w, hh) end
                             if not (sIcone and DessinerImg(sIcone, v * 0.8, h / 2 - v * 1.2, v * 2.4, v * 2.4, bActif and PAPIER or Color(OR.r, OR.g, OR.b, 200))) and mIconeOrig then
                                 surface.SetMaterial(mIconeOrig)
                                 surface.SetDrawColor(255, 255, 255, bActif and 255 or 170)
@@ -552,7 +596,8 @@ function F.Fiche(self, tSkill)
     fermer:SetSize(v * 3.6, v * 3.6)
     fermer:SetPos(W - v * 5.2, v * 1.6)
     fermer.Paint = function(s, w, h)
-        draw.RoundedBox(v * 0.8, 0, 0, w, h, s:IsHovered() and ROUGE or Color(255, 255, 255, 12))
+        surface.SetDrawColor(s:IsHovered() and ROUGE or Color(255, 255, 255, 10)) surface.DrawRect(0, 0, w, h)
+        surface.SetDrawColor(BORD) surface.DrawOutlinedRect(0, 0, w, h, 1)
         Ligne(w * 0.33, h * 0.33, w * 0.67, h * 0.67, 2, PAPIER)
         Ligne(w * 0.67, h * 0.33, w * 0.33, h * 0.67, 2, PAPIER)
     end
@@ -665,8 +710,9 @@ function F.Fiche(self, tSkill)
             bActif = p:GetNetworkVar("nSkillPoint", 0) > 0
         end
         local c1 = bActif and (s:IsHovered() and Color(214, 70, 52) or ROUGE) or Color(70, 64, 58)
-        draw.RoundedBox(v * 0.4, 0, 0, w, h, c1)
-        if bActif then draw.RoundedBox(0, v, h - v * 0.6, w - v * 2, 2, OR) end
+        surface.SetDrawColor(bActif and (s:IsHovered() and ROUGE or ROUGE_FONCE) or Color(30, 30, 30)) surface.DrawRect(0, 0, w, h)
+        Grain(0, 0, w, h, 12)
+        surface.SetDrawColor(bActif and ROUGE or BORD) surface.DrawOutlinedRect(0, 0, w, h, 1)
         draw.SimpleText(sTxt, "TFJF4::Titre", w / 2, h / 2, bActif and PAPIER or TEXTE2, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
     -- meme action que la fenetre d'origine

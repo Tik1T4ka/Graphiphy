@@ -122,14 +122,14 @@ def kanji_img(ch, n=512, rough=True):
 def sceau(ch, n=96):
     N=n*SS
     im=Image.new("RGBA",(N,N),(0,0,0,0)); d=ImageDraw.Draw(im)
-    R=(196,44,36,255)
+    R=(170,24,24,255)
     d.rounded_rectangle([N*0.04,N*0.04,N*0.96,N*0.96],radius=N*0.12,fill=R)
-    CR=(239,228,204,255)
+    CR=(242,242,242,255)
     d.rounded_rectangle([N*0.11,N*0.11,N*0.89,N*0.89],radius=N*0.08,outline=CR,width=int(N*0.03))
     f=ImageFont.truetype(KF,int(N*0.6))
     m=Image.new("L",(N,N),0); ImageDraw.Draw(m).text((N/2,N/2+N*0.02),ch,font=f,fill=255,anchor="mm")
     m=m.filter(ImageFilter.MaxFilter(11))
-    im.paste(Image.new("RGBA",(N,N),(239,228,204,255)),(0,0),m)
+    im.paste(Image.new("RGBA",(N,N),(242,242,242,255)),(0,0),m)
     # grain d'encre du tampon
     n2=Image.effect_noise((N,N),90).convert("L").filter(ImageFilter.GaussianBlur(3)).point(lambda v: 0 if v<62 else 255)
     im.putalpha(ImageChops.multiply(im.split()[3],n2))
@@ -141,6 +141,9 @@ kanji_img("忍",384).resize((256,256),Image.LANCZOS).save(OUT+"filigrane.png",op
 SC={"suiton":"水","futon":"風","raiton":"雷","doton":"土","katon":"火","taijutsu":"体","kenjutsu":"剣",
     "guerrier":"戦","robustesse":"鋼","mirage":"幻","medicale":"医","clan":"族","kekkei":"血","shinobi":"忍"}
 for k,ch in SC.items(): sceau(ch,80).save(OUT+"sceau_"+k+".png",optimize=True)
+# grain (texture de fond facon papier sombre)
+g=Image.effect_noise((128,128),40).convert("L").point(lambda v: max(0,min(255,(v-128)*2+128)))
+Image.merge("RGBA",(g,g,g,Image.new("L",(128,128),255))).save(OUT+"grain.png",optimize=True)
 # planche de controle
 names=list(icons)+["filigrane"]+["sceau_"+k for k in SC]
 sheet=Image.new("RGBA",(110*7,110*3),(30,25,20,255))
