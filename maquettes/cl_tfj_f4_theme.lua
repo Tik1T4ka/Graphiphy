@@ -169,13 +169,39 @@ function F.Habiller(vFrame, nID)
     local tNoeuds = {} -- { btn, tSkill, bHasNature }
     for _, c in ipairs(vFrame:GetChildren()) do
         local tSkill = Upval(c.DoClick, "tSkill")
-        if istable(tSkill) and tSkill.sID and c:GetClassName() == "DButton" then
+        if istable(tSkill) and tSkill.sID and c.ClassName == "DButton" then
             local bHasNature = Upval(c.DoClick, "bHasNature")
             PeindreNoeud(c, tSkill, bHasNature)
             tNoeuds[#tNoeuds + 1] = { btn = c, tSkill = tSkill, bHasNature = bHasNature }
         end
     end
     vFrame.tTFJNoeuds = tNoeuds
+
+    -- 1b) recentrage : les arbres sont places au centre de la zone libre (sous les onglets, au-dessus des boutons du bas)
+    if not vFrame.TFJCentre and #tNoeuds > 0 then
+        vFrame.TFJCentre = true
+        local W, H = vFrame:GetWide(), vFrame:GetTall()
+        local x1, y1, x2, y2 = math.huge, math.huge, -math.huge, -math.huge
+        for _, n in ipairs(tNoeuds) do
+            local x, y = n.btn:GetPos()
+            local bw, bh = n.btn:GetSize()
+            x1, y1 = math.min(x1, x), math.min(y1, y)
+            x2, y2 = math.max(x2, x + bw), math.max(y2, y + bh)
+        end
+        -- marges des cartes dessinees autour des ronds
+        local cx1, cy1, cx2, cy2 = x1 - v * 3.2, y1 - v * 7.5, x2 + v * 3.2, y2 + v * 3
+        local zHaut = v * 11
+        local zBas = (nID == 1) and v * 80 or (H - v * 5)
+        local dy = (zHaut + zBas) / 2 - (cy1 + cy2) / 2
+        if cy1 + dy < zHaut then dy = zHaut - cy1 end
+        local dx = (nID == 2) and 0 or (W / 2 - (cx1 + cx2) / 2)
+        if math.abs(dx) > 1 or math.abs(dy) > 1 then
+            for _, n in ipairs(tNoeuds) do
+                local x, y = n.btn:GetPos()
+                n.btn:SetPos(math.Round(x + dx), math.Round(y + dy))
+            end
+        end
+    end
 
     -- 2) fond, cartes des arbres, liens, points (le dessin d'origine est garde pour ses effets mais rendu invisible)
     local fnOrig = vFrame.Paint
@@ -258,10 +284,10 @@ function F.Habiller(vFrame, nID)
         local sPts = tostring(p:GetNetworkVar("nSkillPoint", 0))
         surface.SetFont("TFJF4::Gros")
         local pw = surface.GetTextSize(sPts)
-        Carte(v * 2.5, v * 2.4, pw + v * 21, v * 7.2)
-        draw.SimpleText(sPts, "TFJF4::Gros", v * 4, v * 6, OR, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-        draw.SimpleText("points de comp\195\169tence", "TFJF4::Gras", v * 5.2 + pw, v * 5.1, PAPIER, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-        draw.SimpleText("disponibles", "TFJF4::Petit", v * 5.2 + pw, v * 7.2, TEXTE2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        Carte(v * 3, v * 3, pw + v * 19, v * 5.6)
+        draw.SimpleText(sPts, "TFJF4::Gros", v * 4.4, v * 5.8, OR, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText("points de comp\195\169tence", "TFJF4::Gras", v * 5.6 + pw, v * 4.9, PAPIER, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText("disponibles", "TFJF4::Petit", v * 5.6 + pw, v * 6.8, TEXTE2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
         -- reinitialisation (le bouton d'origine reste cliquable, on dessine la carte autour)
         local b = self.vButtonBuySecondReroll
@@ -270,7 +296,8 @@ function F.Habiller(vFrame, nID)
             surface.SetFont("TFJF4::Gras")
             local tw2, th2 = surface.GetTextSize(sTxt)
             local bw2, bh2 = tw2 + v * 3, th2 + v * 1.8
-            local bx2, by2 = w - v * 9 - bw2, v * 3.2
+            bh2 = v * 4.6
+            local bx2, by2 = w - v * 9.4 - bw2, v * 3.5
             b:SetPos(bx2, by2) b:SetSize(bw2, bh2)
             local bSurvol = b:IsHovered()
             draw.RoundedBox(v, bx2, by2, bw2, bh2, Color(OR.r, OR.g, OR.b, bSurvol and 200 or 110))
@@ -306,17 +333,17 @@ function F.HabillerEnfants(vFrame)
     for _, c in ipairs(vFrame:GetChildren()) do
         if not c.TFJHabille then
             -- bouton fermer (petit carre en haut a droite)
-            if c:GetClassName() == "DButton" and c:GetWide() == 28 and c:GetTall() == 28 then
+            if c.ClassName == "DButton" and c:GetWide() == 28 and c:GetTall() == 28 then
                 c.TFJHabille = true
                 c:SetSize(v * 4.6, v * 4.6)
-                c:SetPos(vFrame:GetWide() - v * 7.4, v * 3.2)
+                c:SetPos(vFrame:GetWide() - v * 7.6, v * 3.5)
                 c.Paint = function(self, w, h)
                     draw.RoundedBox(v, 0, 0, w, h, self:IsHovered() and ROUGE or PANNEAU)
                     Ligne(w * 0.33, h * 0.33, w * 0.67, h * 0.67, 3, PAPIER)
                     Ligne(w * 0.67, h * 0.33, w * 0.33, h * 0.67, 3, PAPIER)
                 end
             -- boutons de choix / relance de nature
-            elseif c:GetClassName() == "DButton" and (Upval(c.Paint, "bHasFirst") ~= nil or Upval(c.Paint, "bHasSecond") ~= nil) then
+            elseif c.ClassName == "DButton" and (Upval(c.Paint, "bHasFirst") ~= nil or Upval(c.Paint, "bHasSecond") ~= nil) then
                 c.TFJHabille = true
                 local bPremier = Upval(c.Paint, "bHasFirst") ~= nil
                 c.Paint = function(self, w, h)
@@ -334,7 +361,7 @@ function F.HabillerEnfants(vFrame)
                     draw.SimpleText(sText, "TFJF4::Gras", w / 2, h / 2, PAPIER, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
                 end
             -- barre d'onglets (DPanel contenant les boutons des categories)
-            elseif c:GetClassName() == "DPanel" then
+            elseif c.ClassName == "DPanel" then
                 local tOnglets = {}
                 for _, b in ipairs(c:GetChildren()) do
                     if Upval(b.Paint, "tCategory") and Upval(b.Paint, "nID") then tOnglets[#tOnglets + 1] = b end
@@ -343,6 +370,7 @@ function F.HabillerEnfants(vFrame)
                     c.TFJHabille = true
                     c:SetTall(v * 5.6)
                     c:SetY(v * 3)
+                    c:SetX(math.Round(vFrame:GetWide() / 2 - c:GetWide() / 2))
                     c.Paint = function(self, w, h)
                         draw.RoundedBox(h / 2, -v * 0.8, 0, w + v * 1.6, h, Color(OR.r, OR.g, OR.b, 45))
                         draw.RoundedBox(h / 2, -v * 0.8 + 1, 1, w + v * 1.6 - 2, h - 2, PANNEAU)
