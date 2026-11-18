@@ -60,8 +60,8 @@ local function Ligne(x1, y1, x2, y2, ep, col)
     surface.DrawTexturedRectRotated((x1 + x2) / 2, (y1 + y2) / 2, l, ep, -math.deg(math.atan2(dy, dx)))
 end
 local function Carte(x, y, w, h, colBord)
-    draw.RoundedBox(math.Round(VH() * 1.2), x, y, w, h, colBord or Color(OR.r, OR.g, OR.b, 40))
-    draw.RoundedBox(math.Round(VH() * 1.1), x + 1, y + 1, w - 2, h - 2, PANNEAU)
+    draw.RoundedBox(math.Round(VH() * 0.4), x, y, w, h, colBord or Color(OR.r, OR.g, OR.b, 60))
+    draw.RoundedBox(math.Round(VH() * 0.4), x + 1, y + 1, w - 2, h - 2, PANNEAU)
 end
 local function Cadenas(x, y, s, col)
     surface.SetDrawColor(col)
@@ -72,6 +72,72 @@ local function Cadenas(x, y, s, col)
     surface.DrawRect(x - s * 0.36, y - s * 0.55, s * 0.72, s * 0.14)
 end
 F.Cercle, F.Ligne, F.Carte = Cercle, Ligne, Carte
+
+-- ------------------------------------------------------------------ style ninja
+local BOIS = Color(86, 56, 33)
+local BOIS_CLAIR = Color(122, 82, 48)
+local PARCHEMIN = Color(33, 27, 21, 238)
+local function Img(s) return TFJ_F4.Img and TFJ_F4.Img[s] end
+local function DessinerImg(s, x, y, w, h, col, ang)
+    local m = Img(s)
+    if not m then return false end
+    surface.SetMaterial(m)
+    surface.SetDrawColor(col or color_white)
+    if ang then surface.DrawTexturedRectRotated(x, y, w, h, ang) else surface.DrawTexturedRect(x, y, w, h) end
+    return true
+end
+-- rouleau de bois (haut / bas d'un parchemin)
+local function Rouleau(x, y, w, ep)
+    draw.RoundedBox(ep / 2, x, y, w, ep, BOIS)
+    draw.RoundedBox(ep / 2, x + ep, y + 1, w - ep * 2, ep * 0.35, BOIS_CLAIR)
+    draw.RoundedBox(ep * 0.3, x - ep * 0.5, y - ep * 0.25, ep * 1.1, ep * 1.5, OR)
+    draw.RoundedBox(ep * 0.3, x + w - ep * 0.6, y - ep * 0.25, ep * 1.1, ep * 1.5, OR)
+end
+-- parchemin : corps sombre + rouleaux en haut et en bas
+local function Parchemin(x, y, w, h)
+    local v = VH()
+    draw.RoundedBox(math.Round(v * 0.4), x, y, w, h, Color(OR.r, OR.g, OR.b, 55))
+    draw.RoundedBox(math.Round(v * 0.4), x + 1, y + 1, w - 2, h - 2, PARCHEMIN)
+    surface.SetMaterial(MAT_DEGRADE)
+    surface.SetDrawColor(0, 0, 0, 90)
+    surface.DrawTexturedRect(x + 1, y + h * 0.55, w - 2, h * 0.45 - 1)
+    -- liseres dores interieurs
+    surface.SetDrawColor(OR.r, OR.g, OR.b, 35)
+    surface.DrawOutlinedRect(x + v * 0.6, y + v * 0.9, w - v * 1.2, h - v * 1.8, 1)
+    local ep = math.max(6, v * 1.1)
+    Rouleau(x - v * 0.9, y - ep * 0.6, w + v * 1.8, ep)
+    Rouleau(x - v * 0.9, y + h - ep * 0.4, w + v * 1.8, ep)
+end
+F.Parchemin = Parchemin
+-- sceau rouge de chaque arbre
+local tSceaux = { suiton = 1, futon = 1, raiton = 1, doton = 1, katon = 1, guerrier = 1, robustesse = 1, mirage = 1, medicale = 1 }
+local function Sceau(sB)
+    sB = tostring(sB or "")
+    if tSceaux[sB] then return "sceau_" .. sB end
+    if sB:StartWith("taijutsu") then return "sceau_taijutsu" end
+    if sB:StartWith("kenjutsu") then return "sceau_kenjutsu" end
+    local tClans = Solve and Solve.Naruto and Solve.Naruto.Clan and Solve.Naruto.Clan.Config and Solve.Naruto.Clan.Config.clans
+    if tClans and tClans[sB] then return "sceau_clan" end
+    for _, c in ipairs((M_Fight.tConfig and M_Fight.tConfig.tCategories) or {}) do
+        if c.bKekkei then for _, t in ipairs(c.tTrees or {}) do if t.sID == sB then return "sceau_kekkei" end end end
+        if c.bClan then for _, t in ipairs(c.tTrees or {}) do if t.sID == sB then return "sceau_clan" end end end
+    end
+    return "sceau_shinobi"
+end
+F.Sceau = Sceau
+local tIconesOnglets = { ["Natures"] = "onglet_natures", ["Styles"] = "onglet_styles", ["Classes"] = "onglet_classes", ["Clans"] = "onglet_clans", ["Kekkei Genkai"] = "onglet_kekkei" }
+-- trait en pointilles (liens verrouilles)
+local function Pointilles(x1, y1, x2, y2, ep, col)
+    local dx, dy = x2 - x1, y2 - y1
+    local l = math.sqrt(dx * dx + dy * dy)
+    if l < 1 then return end
+    local pas = VH() * 1.2
+    local n = math.floor(l / pas)
+    for i = 0, n - 1, 2 do
+        local a, b = i / n, math.min((i + 1) / n, 1)
+        Ligne(x1 + dx * a, y1 + dy * a, x1 + dx * b, y1 + dy * b, ep, col)
+    end
+end
 
 -- lit une variable capturee par une fonction du menu (sans modifier le menu)
 local function Upval(fn, sNom)
@@ -120,11 +186,28 @@ local function PeindreNoeud(btn, tSkill, bHasNature)
         local cx, cy = w / 2, h / 2
         local r = w / 2 * (1 + 0.1 * self.fH)
         local bClip = DisableClipping(true)
+        if sEtat == "dispo" then -- shuriken qui tourne doucement
+            DessinerImg("shuriken", cx, cy, r * 2.9, r * 2.9, Color(ROUGE.r, ROUGE.g, ROUGE.b, 70 + 60 * self.fH), (CurTime() * 25) % 360)
+        end
         if sEtat ~= "verrou" then -- halo
             surface.SetMaterial(MAT_GLOW)
             local fPulse = sEtat == "dispo" and (0.75 + 0.25 * math.sin(CurTime() * 3)) or 1
             surface.SetDrawColor(col.r, col.g, col.b, (60 + 70 * self.fH) * fPulse)
             surface.DrawTexturedRectRotated(cx, cy, r * 3.4, r * 3.4, 0)
+        end
+        if sEtat == "appris" then -- quatre pointes facon shuriken
+            for k = 0, 3 do
+                local a = k * math.pi / 2 + math.pi / 4
+                local px, py = cx + math.cos(a) * r * 1.08, cy + math.sin(a) * r * 1.08
+                draw.NoTexture()
+                surface.SetDrawColor(col)
+                surface.DrawPoly({
+                    { x = px + math.cos(a) * r * 0.28, y = py + math.sin(a) * r * 0.28 },
+                    { x = px + math.cos(a + math.pi / 2) * r * 0.14, y = py + math.sin(a + math.pi / 2) * r * 0.14 },
+                    { x = px - math.cos(a) * r * 0.1, y = py - math.sin(a) * r * 0.1 },
+                    { x = px + math.cos(a - math.pi / 2) * r * 0.14, y = py + math.sin(a - math.pi / 2) * r * 0.14 },
+                })
+            end
         end
         Cercle(cx, cy, r, col)                         -- anneau
         Cercle(cx, cy, r - math.max(2, w * 0.05), ENCRE)
@@ -190,7 +273,7 @@ function F.Habiller(vFrame, nID)
         end
         -- marges des cartes dessinees autour des ronds
         local cx1, cy1, cx2, cy2 = x1 - v * 3.2, y1 - v * 7.5, x2 + v * 3.2, y2 + v * 3
-        local zHaut = v * 11
+        local zHaut = v * 13.5
         local zBas = (nID == 1) and v * 80 or (H - v * 5)
         local dy = (zHaut + zBas) / 2 - (cy1 + cy2) / 2
         if cy1 + dy < zHaut then dy = zHaut - cy1 end
@@ -217,6 +300,12 @@ function F.Habiller(vFrame, nID)
         surface.SetMaterial(MAT_DEGRADE)
         surface.SetDrawColor(0, 0, 0, 160)
         surface.DrawTexturedRect(0, h * 0.5, w, h * 0.5)
+        DessinerImg("filigrane", w / 2, h * 0.55, h * 0.85, h * 0.85, Color(ROUGE.r, ROUGE.g, ROUGE.b, 16), 0)
+        -- bandeau du haut : trait de pinceau rouge + shuriken
+        local yB = v * 10.4
+        Ligne(v * 3, yB, w / 2 - v * 3, yB, 2, Color(ROUGE.r, ROUGE.g, ROUGE.b, 150))
+        Ligne(w / 2 + v * 3, yB, w - v * 3, yB, 2, Color(ROUGE.r, ROUGE.g, ROUGE.b, 150))
+        DessinerImg("shuriken", w / 2, yB, v * 3.2, v * 3.2, Color(OR.r, OR.g, OR.b, 200), (CurTime() * 12) % 360)
 
         -- cartes des arbres (regroupe les ronds par arbre)
         local tArbres = {}
@@ -239,20 +328,17 @@ function F.Habiller(vFrame, nID)
                 local cw, ch = (t.x2 - t.x1) + v * 6.4, (t.y2 - t.y1) + v * 10.5
                 cw = math.max(cw, v * 18)
                 x = (t.x1 + t.x2) / 2 - cw / 2
-                Carte(x, y, cw, ch)
-                local sNom, mIcone = NomArbre(sB)
+                Parchemin(x, y, cw, ch)
+                local sNom = NomArbre(sB)
                 local tx = x + v * 1.5
-                if mIcone then
-                    surface.SetMaterial(mIcone)
-                    surface.SetDrawColor(255, 255, 255, t.nature == false and 120 or 255)
-                    surface.DrawTexturedRect(tx, y + v * 1.2, v * 3, v * 3)
-                    tx = tx + v * 3.6
+                if DessinerImg(Sceau(sB), tx, y + v * 1.3, v * 3.4, v * 3.4, Color(255, 255, 255, t.nature == false and 110 or 255)) then
+                    tx = tx + v * 4
                 end
-                draw.SimpleText(sNom, "TFJF4::Titre", tx, y + v * 1.1, t.nature == false and TEXTE2 or PAPIER)
+                draw.SimpleText(string.upper(sNom), "TFJF4::Titre", tx, y + v * 1.1, t.nature == false and TEXTE2 or OR)
                 draw.SimpleText(t.appris .. " / " .. t.n .. " techniques" .. (t.nature == false and "  ·  nature non ma\195\174tris\195\169e" or ""), "TFJF4::Petit", tx, y + v * 3.4, TEXTE2)
                 local bx, by, bw = x + v * 1.5, y + v * 5.4, cw - v * 3
-                draw.RoundedBox(2, bx, by, bw, 4, Color(GRIS.r, GRIS.g, GRIS.b, 120))
-                if t.appris > 0 then draw.RoundedBox(2, bx, by, bw * t.appris / t.n, 4, OR) end
+                draw.RoundedBox(0, bx, by, bw, 3, Color(GRIS.r, GRIS.g, GRIS.b, 120))
+                if t.appris > 0 then draw.RoundedBox(0, bx, by, bw * t.appris / t.n, 3, ROUGE) end
             end
         end
 
@@ -275,7 +361,8 @@ function F.Habiller(vFrame, nID)
                     local bParentAppris = Niveau(p, b[3].tSkill) > 0
                     local col = (sEtat == "appris" and bParentAppris) and Color(OR.r, OR.g, OR.b, 235)
                         or (sEtat == "dispo" and Color(ROUGE.r, ROUGE.g, ROUGE.b, 210) or Color(GRIS.r, GRIS.g, GRIS.b, 150))
-                    Ligne(a[1], a[2], b[1], b[2], sEtat == "appris" and 4 or 3, col)
+                    if sEtat == "verrou" then Pointilles(a[1], a[2], b[1], b[2], 3, col)
+                    else Ligne(a[1], a[2], b[1], b[2], sEtat == "appris" and 4 or 3, col) end
                 end
             end
         end
@@ -284,10 +371,11 @@ function F.Habiller(vFrame, nID)
         local sPts = tostring(p:GetNetworkVar("nSkillPoint", 0))
         surface.SetFont("TFJF4::Gros")
         local pw = surface.GetTextSize(sPts)
-        Carte(v * 3, v * 3, pw + v * 19, v * 5.6)
-        draw.SimpleText(sPts, "TFJF4::Gros", v * 4.4, v * 5.8, OR, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-        draw.SimpleText("points de comp\195\169tence", "TFJF4::Gras", v * 5.6 + pw, v * 4.9, PAPIER, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-        draw.SimpleText("disponibles", "TFJF4::Petit", v * 5.6 + pw, v * 6.8, TEXTE2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        Carte(v * 3, v * 3, pw + v * 23.5, v * 5.6)
+        DessinerImg("sceau_shinobi", v * 3.7, v * 3.7, v * 4.2, v * 4.2)
+        draw.SimpleText(sPts, "TFJF4::Gros", v * 8.9, v * 5.8, OR, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText("POINTS DE COMP\195\137TENCE", "TFJF4::Gras", v * 10.1 + pw, v * 4.9, PAPIER, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText("disponibles", "TFJF4::Petit", v * 10.1 + pw, v * 6.8, TEXTE2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
         -- reinitialisation (le bouton d'origine reste cliquable, on dessine la carte autour)
         local b = self.vButtonBuySecondReroll
@@ -308,7 +396,7 @@ function F.Habiller(vFrame, nID)
         -- legende (bas)
         local lx, ly = v * 3, h - v * 2.6
         for _, t in ipairs({ { "Appris", OR }, { "Disponible", ROUGE }, { "Verrouill\195\169", GRIS } }) do
-            Cercle(lx + v * 0.6, ly, v * 0.6, t[2])
+            if not DessinerImg("shuriken", lx + v * 0.6, ly, v * 1.6, v * 1.6, t[2], 0) then Cercle(lx + v * 0.6, ly, v * 0.6, t[2]) end
             local tw = draw.SimpleText(t[1], "TFJF4::Petit", lx + v * 1.6, ly, TEXTE2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
             lx = lx + v * 1.6 + tw + v * 2.4
         end
@@ -372,13 +460,16 @@ function F.HabillerEnfants(vFrame)
                     c:SetY(v * 3)
                     c:SetX(math.Round(vFrame:GetWide() / 2 - c:GetWide() / 2))
                     c.Paint = function(self, w, h)
-                        draw.RoundedBox(h / 2, -v * 0.8, 0, w + v * 1.6, h, Color(OR.r, OR.g, OR.b, 45))
-                        draw.RoundedBox(h / 2, -v * 0.8 + 1, 1, w + v * 1.6 - 2, h - 2, PANNEAU)
+                        draw.RoundedBox(v * 0.4, -v * 0.8, 0, w + v * 1.6, h, Color(OR.r, OR.g, OR.b, 70))
+                        draw.RoundedBox(v * 0.4, -v * 0.8 + 1, 1, w + v * 1.6 - 2, h - 2, PANNEAU)
+                        surface.SetDrawColor(OR.r, OR.g, OR.b, 30)
+                        surface.DrawOutlinedRect(-v * 0.4, v * 0.4, w + v * 0.8, h - v * 0.8, 1)
                     end
                     for _, b in ipairs(tOnglets) do
                         local tCat = Upval(b.Paint, "tCategory")
                         local nMon = Upval(b.Paint, "nID")
-                        local mIcone = Upval(b.Paint, "matIcon")
+                        local sIcone = tCat and tIconesOnglets[tCat.sName]
+                        local mIconeOrig = Upval(b.Paint, "matIcon")
                         local fnActif = function() return Upval(b.Paint, "nActualID") == nMon end
                         local fnOrig = b.Paint
                         b.TFJHabille = true
@@ -386,10 +477,12 @@ function F.HabillerEnfants(vFrame)
                             local bActif = Upval(fnOrig, "nActualID") == nMon
                             self.fH = Lerp(FrameTime() * 10, self.fH or 0, self:IsHovered() and 1 or 0)
                             local hh = h - v * 1
-                            if bActif then draw.RoundedBox(hh / 2, 0, v * 0.5, w, hh, ROUGE)
-                            elseif self.fH > 0.01 then draw.RoundedBox(hh / 2, 0, v * 0.5, w, hh, Color(255, 255, 255, 18 * self.fH)) end
-                            if mIcone then
-                                surface.SetMaterial(mIcone)
+                            if bActif then
+                                draw.RoundedBox(v * 0.3, 0, v * 0.5, w, hh, ROUGE)
+                                draw.RoundedBox(0, v * 0.6, h - v * 0.9, w - v * 1.2, 2, OR)
+                            elseif self.fH > 0.01 then draw.RoundedBox(v * 0.3, 0, v * 0.5, w, hh, Color(255, 255, 255, 18 * self.fH)) end
+                            if not (sIcone and DessinerImg(sIcone, v * 0.8, h / 2 - v * 1.2, v * 2.4, v * 2.4, bActif and PAPIER or Color(OR.r, OR.g, OR.b, 200))) and mIconeOrig then
+                                surface.SetMaterial(mIconeOrig)
                                 surface.SetDrawColor(255, 255, 255, bActif and 255 or 170)
                                 surface.DrawTexturedRect(v * 0.9, h / 2 - v * 1.1, v * 2.2, v * 2.2)
                             end
@@ -476,7 +569,10 @@ function F.Fiche(self, tSkill)
         local pad = v * 2.6
         local y = pad
 
-        Carte(0, 0, w, h)
+        local bClip = DisableClipping(true)
+        Parchemin(0, 0, w, h)
+        DisableClipping(bClip)
+        DessinerImg(Sceau(tSkill.sParent), w - v * 11, v * 2.2, v * 4.6, v * 4.6)
         -- en-tete : icone dans son anneau, nom, infos
         local r = v * 3.6
         surface.SetMaterial(MAT_GLOW)
@@ -569,7 +665,8 @@ function F.Fiche(self, tSkill)
             bActif = p:GetNetworkVar("nSkillPoint", 0) > 0
         end
         local c1 = bActif and (s:IsHovered() and Color(214, 70, 52) or ROUGE) or Color(70, 64, 58)
-        draw.RoundedBox(v * 1.2, 0, 0, w, h, c1)
+        draw.RoundedBox(v * 0.4, 0, 0, w, h, c1)
+        if bActif then draw.RoundedBox(0, v, h - v * 0.6, w - v * 2, 2, OR) end
         draw.SimpleText(sTxt, "TFJF4::Titre", w / 2, h / 2, bActif and PAPIER or TEXTE2, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
     -- meme action que la fenetre d'origine
