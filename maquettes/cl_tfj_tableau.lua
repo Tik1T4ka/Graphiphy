@@ -47,7 +47,7 @@ end
 -- cadre a double liseret (fenetres Style A)
 local function CadreDouble(x, y, w, h, cFond)
     surface.SetDrawColor(cFond) surface.DrawRect(x, y, w, h)
-    Grain(x, y, w, h, 9)
+    -- pas de grain sur le cadre (deja sur la fenetre)
     surface.SetDrawColor(C.bord) surface.DrawOutlinedRect(x, y, w, h, 1)
     surface.SetDrawColor(C.bordInt) surface.DrawOutlinedRect(x + 3, y + 3, w - 6, h - 6, 1)
 end
@@ -146,7 +146,7 @@ function T.Construire()
     v.Paint = function(self, w, h)
         -- fenetre : fond a grain, liseret, barre rouge, losanges aux coins
         surface.SetDrawColor(C.fond) surface.DrawRect(0, 0, w, h)
-        Grain(0, 0, w, h, 10)
+        Grain(0, 0, w, h, 4) -- grain leger, une seule couche
         surface.SetDrawColor(C.bord) surface.DrawOutlinedRect(0, 0, w, h, 1)
         surface.SetDrawColor(C.rouge) surface.DrawRect(1, 1, w - 2, 2)
         CadreDouble(mCadre, hEnt, w - mCadre * 2, h - hEnt - mCadre, C.cadre)
@@ -176,7 +176,6 @@ function T.Construire()
         b.Paint = function(self, w, h)
             local bH = self:IsHovered()
             surface.SetDrawColor(bH and C.caseH or C.case) surface.DrawRect(0, 0, w, h)
-            Grain(0, 0, w, h, 12)
             surface.SetDrawColor(bH and C.rouge or C.bord) surface.DrawOutlinedRect(0, 0, w, h, 1)
             draw.SimpleText("Menu admin", "TFJTab.Nom", w / 2, h / 2, C.texte, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
@@ -245,7 +244,6 @@ function T.Construire()
                     local bH = self:IsHovered()
                     local cFond = bMoi and C.selection or (bH and C.caseH or C.case)
                     surface.SetDrawColor(cFond) surface.DrawRect(0, 0, w, h)
-                    Grain(0, 0, w, h, 8)
                     surface.SetDrawColor((bMoi or bH) and C.rouge or C.bord) surface.DrawOutlinedRect(0, 0, w, h, 1)
                     if bMoi then surface.SetDrawColor(C.rouge) surface.DrawRect(0, 0, 3, h) end
                     -- cadre de l'avatar
