@@ -6,7 +6,7 @@ Ne plus toucher au menu F4 (arbre de compétences) : il reste tel quel.
 ## Style A : « lecteur de musique » (`references/style_A_lecteur_musique.png`)
 Utilisé pour : coffre, registre médical.
 - Police : Philosopher Bold (`resource/fonts/philosopher-*.ttf`, envoyée par `sv_tfj_polices.lua`).
-- Fenêtres noires avec grain, double liseré fin, angles nets, petits losanges aux coins.
+- Fenêtres noires avec un grain très discret (intensité ÷4), double liseré fin, angles nets, petits losanges aux coins.
 - Petit libellé rouge en majuscules au-dessus d'un grand titre blanc.
 - Lignes de liste encadrées, liseré rouge au survol.
 - Fonctions partagées : `TFJ_UI.Cadre`, `TFJ_UI.Grain`, `TFJ_UI.Losange`, `TFJ_UI.Bouton`, `TFJ_UI.EnTete`.

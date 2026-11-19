@@ -13,7 +13,7 @@ local GRIS = Color(145, 145, 145)
 local ROUGE = Color(176, 26, 26)
 local ROUGE_FONCE = Color(104, 14, 14)
 local VERT = Color(236, 236, 236)       -- "compatible" en blanc (palette noir / rouge / blanc)
-local function Grain(x, y, w, h, a) if TFJ_UI and TFJ_UI.Grain then TFJ_UI.Grain(x, y, w, h, a) end end
+local function Grain(x, y, w, h, a) if TFJ_UI and TFJ_UI.Grain then TFJ_UI.Grain(x, y, w, h, math.max(1, math.Round((a or 9) * 0.25))) end end -- grain discret (style A)
 local function Cadre(x, y, w, h, colBord, colFond)
     surface.SetDrawColor(colFond or CUIR_FONCE) surface.DrawRect(x, y, w, h)
     Grain(x, y, w, h, 9)
