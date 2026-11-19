@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=block" rel="stylesheet">
 <style>
 /* Menu B (barre de jutsus) : disposition de la reference, DA du F4 TFJ.
-   Onglets = M_Fight.tConfig.tSkillsCategories ; 6 emplacements x 2 decks ; case "jutsus appris". */
+   Onglets = M_Fight.tConfig.tSkillsCategories ; barre de 6 sorts ; bouton "enregistrer la barre comme deck" (tfj_decks, touche H pour equiper) ; case "jutsus appris". */
 :root{--noir:#09090a;--bord:#2a2a2e;--gris:#8a8a92;--blanc:#f2f2f2;--rouge:#b01a1a;--rougeV:#d8262f;--rougeT:#e04848}
 *{box-sizing:border-box;margin:0;padding:0}
 body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Poppins,sans-serif;color:var(--blanc);
@@ -50,11 +50,11 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 .defil{position:absolute;left:1205px;top:110px;width:5px;height:360px;background:#1d1d21}.defil i{display:block;height:80px;background:var(--rougeV)}
 .fondu{position:absolute;left:400px;top:420px;width:790px;height:50px;background:linear-gradient(transparent,rgba(10,10,11,.96))}
 /* deck */
-.deck{position:absolute;left:400px;top:500px;width:790px;height:135px;border-top:1px solid #2a2a2e;display:flex;align-items:center;gap:28px;padding-top:14px}
-.slot{position:relative;width:88px;height:88px;border-radius:50%;border:2px solid #4a4a52;background:#0d0d0f}
+.deck{position:absolute;left:400px;top:500px;width:790px;height:135px;border-top:1px solid #2a2a2e;display:flex;align-items:center;gap:20px;padding-top:14px}
+.slot{position:relative;flex:none;width:84px;height:84px;border-radius:50%;border:2px solid #4a4a52;background:#0d0d0f}
 .slot.ok{border-color:var(--blanc);background:radial-gradient(circle at 50% 60%,#ff9a3a,#c4160c 45%,#3a0806 75%)}
 .slot b{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:400;color:var(--gris)}
-.chg{margin-left:auto;text-align:center;line-height:1}
+.chg{margin-left:auto;text-align:center;line-height:1;white-space:nowrap}
 .chg b{display:block;font-size:30px;font-weight:400}
 .chg small{display:block;font-size:13px;letter-spacing:3px;color:var(--gris);margin-top:2px}
 .chg span{display:inline-block;margin-top:8px;padding:6px 16px 2px;background:var(--rougeV);font-family:'Bebas Neue';font-size:26px;clip-path:polygon(0 12%,8% 0,92% 8%,100% 35%,96% 100%,4% 90%)}
@@ -86,7 +86,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 // groupes = natures, avec les couleurs de colonne du F4
 const G=[['KATON','火','#ff7a1a',[1,1,1,0,0,0,0,0,0,0],1],['RAITON','雷','#f2b02e',[1,0,0,0,0,0,0,0,0,0]],['SUITON','水','#2f9be8',[0,0,0,0,0,0,0,0,0,0]],['FÛTON','風','#7be05a',[0,0,0,0,0,0,0,0,0,0]]];
 document.getElementById('liste').innerHTML=G.map(([n,k,c,r,s])=>`<div class="grp" style="--c:${c}"><h3 class="t" style="color:${c}">${n} <span>${k}</span><em></em></h3><div class="ronds">${r.map((o,i)=>`<i class="${o?'ok':''}${s&&i===0?' sel':''}" style="--c:${c}"></i>`).join('')}</div></div>`).join('');
-document.getElementById('deck').innerHTML=[1,2,3,4,5,6].map(i=>`<div class="slot${i===1?' ok':''}"><b>${i}</b></div>`).join('')+'<div class="chg"><b>CHANGER</b><small>DE DECK</small><span>DECK 1</span></div>';
+document.getElementById('deck').innerHTML=[1,2,3,4,5,6].map(i=>`<div class="slot${i===1?' ok':''}"><b>${i}</b></div>`).join('')+'<div class="chg"><b>ENREGISTRER</b><small>DANS UN DECK</small><span>+ NOUVEAU DECK</span></div>';
 </script>
 </body>
 </html>
