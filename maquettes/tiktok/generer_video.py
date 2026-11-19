@@ -116,11 +116,11 @@ def losange(dr, x, y, r, col):
 
 # ------------------------------------------------------------------ contenu
 NOUVEAUTES = [
-    ("DASH CHAKRA", "Combat plus nerveux", ["Esquive + saut de chakra", "Contrôle total dans les airs"], ICO + "shuriken.png"),
-    ("SYSTÈME MÉDICAL", "Le RP médecin prend vie", ["Groupes sanguins par personnage", "Dons de sang et transfusions"], ICO + "sceau_medicale.png"),
-    ("EXÉCUTIONS", "Mises à mort cinématiques", ["Décapitations au ralenti", "Animation du bourreau au sabre"], ICO + "sceau_kenjutsu.png"),
-    ("COFFRES À CODE", "Protège ton butin", ["Inventaire en glisser-déposer", "Code secret à 4 chiffres"], ICO + "sceau_shinobi.png"),
-    ("ARBRE DE TECHNIQUES", "Nouvelle interface F4", ["Style ninja, sceaux et parchemins", "Rinnegan désormais disponible"], ICO + "onglet_kekkei.png"),
+    ("DASH CHAKRA", "Combat plus nerveux", ["Esquive + saut de chakra", "Contrôle total dans les airs"], OUT + "ico_dash.png"),
+    ("SYSTÈME MÉDICAL", "Le RP médecin prend vie", ["Groupes sanguins par personnage", "Dons de sang et transfusions"], OUT + "ico_medical.png"),
+    ("EXÉCUTIONS", "Mises à mort cinématiques", ["Décapitations au ralenti", "Animation du bourreau au sabre"], OUT + "ico_execution.png"),
+    ("COFFRES À CODE", "Protège ton butin", ["Inventaire en glisser-déposer", "Code secret à 4 chiffres"], OUT + "ico_coffre.png"),
+    ("ARBRE DE TECHNIQUES", "Nouvelle interface F4", ["Style ninja, sceaux et parchemins", "Rinnegan désormais disponible"], OUT + "ico_arbre.png"),
 ]
 T_INTRO, T_TITRE = 0.0, 3.0
 T_CARTES = 6.0
@@ -146,7 +146,7 @@ def titre_ajuste(s):
 TITRES = [titre_ajuste(n[0]) for n in NOUVEAUTES]
 ICONES = []
 for n in NOUVEAUTES:
-    ic = img(n[3], 300)
+    ic = img(n[3], 360)
     if "shuriken" in n[3] or "onglet" in n[3]: ic = teinte(ic, ROUGE)
     ICONES.append(ic)
 SHUR = teinte(img(ICO + "shuriken.png", 220), ROUGE)
@@ -183,7 +183,7 @@ def carte(base, i, t0, t):
     dr.rectangle([x0 + 60, y0 + 345, x0 + 60 + (cw - 120) * ((i + 1) / len(NOUVEAUTES)), y0 + 351], fill=BLANC + (255,))
     # icone
     pop = back((k - 0.08) * 4)
-    coller(cal, ICONES[i], x0 + cw / 2, y0 + 560, 0.95 * pop, 1.0, rot=(t * 40 % 360) if "shuriken" in NOUVEAUTES[i][3] else 0)
+    coller(cal, ICONES[i], x0 + cw / 2, y0 + 560 + 8 * math.sin(t * 3), (0.98 + 0.02 * math.sin(t * 2 * math.pi / BEAT)) * pop, 1.0, rot=3 * math.sin(t * 1.7))
     # puces
     for j, p in enumerate(puces):
         a = ease((k - 0.18 - j * 0.1) * 5)
