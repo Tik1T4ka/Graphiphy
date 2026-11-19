@@ -2,3 +2,8 @@
 __pycache__/
 *.pyc
 .venv/
+
+# TikTok : rendus generes et OST (fichiers proteges, renvoyes a chaque session)
+maquettes/tiktok/musique/
+maquettes/tiktok/*.mp4
+maquettes/tiktok/*.wav
