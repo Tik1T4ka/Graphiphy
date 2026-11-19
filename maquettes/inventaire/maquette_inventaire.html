@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>TFJ Inventaire</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=block" rel="stylesheet">
+<style>
+/* Meme disposition que l'inventaire de reference, style du F4 TFJ (noir / rouge / blanc, Bebas Neue).
+   Couleurs de rarete = celles de la config du jeu (sh_config.lua : basic, rare, epic, legendary, unique). */
+:root{--noir:#09090a;--bord:#2a2a2e;--gris:#8a8a92;--blanc:#f2f2f2;--rouge:#b01a1a;--rougeV:#d8262f;
+ --commun:#8a8d92;--rare:#2f6fd6;--epique:#c040e0;--legendaire:#ddcb27;--unique:#ff8000}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Poppins,sans-serif;color:var(--blanc);
+ background:radial-gradient(1100px 500px at 50% 100%,rgba(176,26,26,.35),transparent 70%),radial-gradient(700px 500px at 0% 0%,rgba(176,26,26,.25),transparent 70%),var(--noir)}
+.t{font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+.logo{position:absolute;left:50%;top:40px;transform:translateX(-50%);height:140px}
+/* titre */
+.titre{position:absolute;left:120px;top:135px;display:flex;align-items:flex-end;gap:14px}
+.titre svg{width:84px;height:84px}
+.titre div{line-height:.85}
+.titre small{display:block;font-size:40px;color:var(--gris)}
+.titre b{font-size:76px;font-weight:400}
+/* barre de poids */
+.poids{position:absolute;left:125px;top:250px;width:780px;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+ background:linear-gradient(90deg,var(--rougeV) 0%,rgba(216,38,47,.85) 46%,#151517 46.2%,#151517 100%);
+ clip-path:polygon(0 8%,2% 0,98% 4%,100% 30%,99% 100%,1% 94%)}
+.poids span{font-size:34px}
+/* grille */
+.grille{position:absolute;left:120px;top:320px;display:grid;grid-template-columns:repeat(5,145px);gap:20px}
+.case{position:relative;width:145px;height:145px;background:#121214;border:1px solid #232327;display:flex;align-items:center;justify-content:center}
+.case.v{background:radial-gradient(circle at 50% 50%,#1b1b1e,#101012 70%)}
+.case[data-r]{background:linear-gradient(180deg,#131315 30%,color-mix(in srgb,var(--c) 55%,#131315));border-color:color-mix(in srgb,var(--c) 70%,transparent);box-shadow:inset 0 -20px 30px -12px color-mix(in srgb,var(--c) 60%,transparent)}
+.case[data-r]:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--c)}
+.case svg{width:74px;height:74px}
+.qte{position:absolute;top:8px;right:10px;font-size:26px}
+.defil{position:absolute;left:935px;top:320px;width:6px;height:640px;background:#1b1b1e}
+.defil i{display:block;height:160px;margin-top:40px;background:var(--rougeV)}
+/* niveau */
+.niveau{position:absolute;left:120px;top:985px;width:820px}
+.niveau b{font-size:30px;font-weight:400;color:var(--rougeT,#e04848)}
+.niveau small{display:block;font-size:13px;color:var(--gris);margin-top:-2px}
+.niveau .barre{height:4px;background:#2a2a2e;margin-top:6px}.niveau .barre i{display:block;height:100%;width:62%;background:var(--blanc)}
+/* personnage et equipement */
+.perso{position:absolute;left:1300px;top:150px;width:420px;height:900px;display:flex;align-items:center;justify-content:center;
+ border:1px dashed #44444a;color:#66666c;font-size:14px;text-align:center}
+.equip{position:absolute;width:118px;height:118px;background:#141416;border:1px solid #2c2c31;display:flex;align-items:center;justify-content:center}
+.equip svg{width:58px;height:58px;opacity:.55}
+.equip:after{content:attr(data-n);position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;color:#6c6c72}
+.hdv{position:absolute;left:1290px;top:832px;width:430px;height:58px;display:flex;align-items:center;justify-content:center;font-size:40px;
+ background:linear-gradient(90deg,transparent,var(--rougeV) 8%,var(--rougeV) 92%,transparent);clip-path:polygon(0 30%,5% 6%,40% 12%,70% 0,96% 10%,100% 55%,94% 96%,60% 86%,30% 100%,4% 90%)}
+</style>
+</head>
+<body>
+<img class="logo" src="../classe/images/logo.png">
+
+<div class="titre"><svg viewBox="0 0 64 64" fill="none" stroke="#d8262f" stroke-width="4" stroke-linejoin="round"><path d="M18 22 V16 a14 10 0 0 1 28 0 V22"/><rect x="8" y="22" width="48" height="36" rx="6" fill="#d8262f" stroke="none"/><path d="M8 36 H56" stroke="#09090a"/><rect x="26" y="32" width="12" height="9" fill="#09090a" stroke="none"/></svg>
+  <div class="t"><small>MENU</small><b>INVENTAIRE</b></div></div>
+
+<div class="poids t"><span>LIMITE DE POIDS</span><span>21 / 45</span></div>
+
+<div class="grille">
+  <div class="case" data-r style="--c:var(--commun)"><svg viewBox="0 0 64 64"><path d="M14 46 L22 22 L36 14 L50 24 L52 44 L36 54 Z" fill="#b8b8bc"/><path d="M22 22 L34 30 L36 54 M34 30 L50 24" stroke="#6a6a70" stroke-width="2" fill="none"/></svg></div>
+  <div class="case" data-r style="--c:var(--legendaire)"><span class="qte t">×3</span><svg viewBox="0 0 64 64"><rect x="12" y="18" width="40" height="28" rx="2" fill="#e8d27a" transform="rotate(-18 32 32)"/><path d="M22 30 h16 M22 36 h12" stroke="#8a6d1c" stroke-width="3" transform="rotate(-18 32 32)"/></svg></div>
+  <div class="case" data-r style="--c:var(--unique)"><span class="qte t">×3</span><svg viewBox="0 0 64 64"><ellipse cx="32" cy="32" rx="20" ry="17" fill="#ff7a1a"/><ellipse cx="27" cy="26" rx="7" ry="5" fill="#ffd2a0"/></svg></div>
+  <div class="case" data-r style="--c:var(--rare)"><svg viewBox="0 0 64 64"><path d="M12 28 L28 14 L52 22 L50 44 L30 52 L14 44 Z" fill="#46b6d8"/><path d="M12 28 L30 34 L52 22 M30 34 L30 52" stroke="#1d6f8a" stroke-width="2" fill="none"/></svg></div>
+  <div class="case" data-r style="--c:var(--rare)"><svg viewBox="0 0 64 64"><path d="M16 46 L20 22 L34 10 L48 22 L50 44 L32 54 Z" fill="#8fb4e8"/><path d="M20 22 L32 30 L48 22 M32 30 L32 54" stroke="#4a6fa8" stroke-width="2" fill="none"/></svg></div>
+  <div class="case" data-r style="--c:var(--commun)"><svg viewBox="0 0 64 64"><g fill="#c8ccd2" stroke="#7a7e86" stroke-width="2"><rect x="10" y="26" width="44" height="8" rx="4" transform="rotate(-25 32 30)"/><rect x="10" y="36" width="44" height="8" rx="4" transform="rotate(-25 32 40)"/><rect x="14" y="16" width="40" height="8" rx="4" transform="rotate(-25 34 20)"/></g></svg></div>
+  <div class="case" data-r style="--c:var(--legendaire)"><svg viewBox="0 0 64 64"><path d="M10 40 L22 26 H52 L54 32 L42 46 H12 Z" fill="#f0c43a"/><path d="M22 26 L12 40 H42 L54 32" stroke="#a88316" stroke-width="2" fill="none"/></svg></div>
+  <div class="case" data-r style="--c:var(--epique)"><svg viewBox="0 0 64 64"><path d="M20 20 L36 12 L50 24 L46 46 L28 52 L16 38 Z" fill="#2a2a30"/><path d="M36 12 L32 30 L46 46 M32 30 L16 38" stroke="#55555e" stroke-width="2" fill="none"/></svg></div>
+  <div class="case v"></div><div class="case v"></div>
+  <div class="case v"></div><div class="case v"></div><div class="case v"></div><div class="case v"></div><div class="case v"></div>
+  <div class="case v"></div><div class="case v"></div><div class="case v"></div><div class="case v"></div><div class="case v"></div>
+</div>
+<div class="defil"><i></i></div>
+
+<div class="niveau"><b class="t">NIVEAU 17</b><small>24 314 XP</small><div class="barre"><i></i></div></div>
+
+<div class="perso">Personnage 3D du joueur<br>(modèle en jeu)</div>
+
+<!-- emplacements d'equipement : icones blanches dessinees, reprises de la config en jeu -->
+<div class="equip" data-n="Boucles d'oreilles" style="left:1160px;top:165px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><circle cx="22" cy="14" r="4"/><path d="M22 18 v6 M14 34 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0"/><circle cx="44" cy="14" r="4"/><path d="M44 18 v6 M36 34 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0"/></svg></div>
+<div class="equip" data-n="Bague" style="left:1080px;top:320px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><circle cx="32" cy="38" r="16"/><path d="M24 22 L32 12 L40 22 Z" fill="#fff"/></svg></div>
+<div class="equip" data-n="Haut" style="left:1040px;top:470px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M22 10 L32 16 L42 10 L56 20 L50 30 L44 26 V54 H20 V26 L14 30 L8 20 Z"/></svg></div>
+<div class="equip" data-n="Gants" style="left:1040px;top:620px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M20 54 V30 L16 22 M20 30 V12 M28 28 V8 M36 28 V10 M44 30 V16 L50 26 L46 40 L40 54 Z"/></svg></div>
+<div class="equip" data-n="Bas" style="left:1080px;top:770px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M18 10 H46 L50 56 H38 L32 26 L26 56 H14 Z"/></svg></div>
+<div class="equip" data-n="Bottes" style="left:1160px;top:920px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M18 8 H34 V36 L52 42 V54 H14 V40 Z"/></svg></div>
+
+<div class="equip" data-n="Masque" style="left:1660px;top:165px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><path d="M12 14 H52 V34 C52 48 42 56 32 56 C22 56 12 48 12 34 Z"/><path d="M20 28 L28 26 L28 32 Z M44 28 L36 26 L36 32 Z" fill="#fff"/></svg></div>
+<div class="equip" data-n="Lunettes" style="left:1740px;top:320px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><path d="M6 28 H58 M10 28 V36 a8 8 0 0 0 16 0 V28 M38 28 V36 a8 8 0 0 0 16 0 V28 M26 30 H38"/></svg></div>
+<div class="equip" data-n="Sac à dos" style="left:1780px;top:470px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M24 14 V10 H40 V14 M14 24 a10 10 0 0 1 10 -10 H40 a10 10 0 0 1 10 10 V54 H14 Z M22 36 H42 V48 H22 Z"/></svg></div>
+<div class="equip" data-n="Armure" style="left:1780px;top:620px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M32 8 L52 16 V32 C52 44 44 52 32 56 C20 52 12 44 12 32 V16 Z M32 8 V56"/></svg></div>
+<div class="equip" data-n="Collier" style="left:1740px;top:770px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><path d="M12 12 C14 34 50 34 52 12"/><path d="M32 30 L40 42 L32 54 L24 42 Z" fill="#fff"/></svg></div>
+<div class="equip" data-n="Arme" style="left:1660px;top:920px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M50 8 L22 36 M18 32 L32 46 M24 40 L12 52"/></svg></div>
+
+<div class="hdv t">HÔTEL DE VENTE</div>
+</body>
+</html>
