@@ -3,7 +3,7 @@
 import math, os, subprocess, wave, random
 import numpy as np
 from PIL import Image, ImageDraw
-import video as V   # reutilise le style (fond, polices, slams, coups de sabre...)
+import generer_video as V   # reutilise le style (fond, polices, slams, coups de sabre...)
 
 ICI = os.path.dirname(os.path.abspath(__file__)) + "/"
 CLIP = ICI + "../medal/clip.mp4"

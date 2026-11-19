@@ -10,9 +10,11 @@ BPM = 120
 BEAT = 60 / BPM
 ICO = "/home/user/Graphiphy/maquettes/f4_icones/"
 KIO = "/home/user/Graphiphy/kioki_icones/"
-GF = "/tmp/claude-0/-home-user-Graphiphy/1cad09a0-0525-5516-bfca-9bee1be4520e/scratchpad/police/gf/ofl/"
+GF = os.path.dirname(os.path.abspath(__file__)) + "/../police/"
 OUT = os.path.dirname(os.path.abspath(__file__)) + "/"
 LIEN = "discord.gg/EDaVQZGvrD"
+# OST de musique/ (None = musique synthetisee) et seconde du morceau ou la video commence
+MUSIQUE, DEBUT_MUSIQUE = "Rising Fighting Spirit", 5.0
 
 ROUGE = (200, 24, 32)
 ROUGE_F = (120, 10, 16)
@@ -381,46 +383,47 @@ def audio(path):
     SAB = sabre()
     # --- version calme : nappe + koto lent + shakuhachi, tambours discrets seulement aux transitions
     for c in HOOK: ajout(c, odaiko, 0.45)
-    ajout(0.1, shaku(IN[0] * 2, 3.5, 0.15))
+    if MUSIQUE is None: ajout(0.1, shaku(IN[0] * 2, 3.5, 0.15))
     for c in COUPES:
         ajout(c, odaiko, 0.32)
         ajout(c - 0.05, SAB, 0.35)
-    # pulsation tres douce : un don feutre toutes les 2 temps
-    b = T_TITRE
-    while b < DUREE - 2.5:
-        ajout(b, don, 0.22)
-        b += BEAT * 2
-    # nappe (accords de la gamme in) avec attaque lente
-    ta = np.arange(n) / sr
-    accords = [(146.83, 220.0, 293.66), (155.56, 233.08, 311.13), (130.81, 196.0, 293.66), (146.83, 220.0, 293.66)]
-    lg = BEAT * 8
-    for k in range(int(DUREE / lg) + 1):
-        t0 = k * lg
-        tt = np.arange(int(lg * 1.3 * sr)) / sr
-        en = np.minimum(1, tt / 1.2) * np.minimum(1, np.maximum(0, (lg * 1.3 - tt)) / 1.0)
-        sig = sum(np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(2 * np.pi * f * 2.003 * tt) for f in accords[k % 4]) * en * 0.035
-        ajout(t0, sig.astype(np.float32))
-    # koto : arpege lent, une note par temps
-    arp = [0, 2, 3, 5, 3, 2, 0, 3]
-    b = T_TITRE; q = 0
-    while b < DUREE - 2.5:
-        ajout(b, koto(IN[arp[q % len(arp)]] / 2, 2.2, 0.16))
-        b += BEAT; q += 1
-    # melodie de shakuhachi, phrases longues et respirees
-    phrase = [(5, 2.0), (6, 1.0), (5, 1.0), (3, 2.5), (4, 1.0), (2, 1.5), (0, 3.0)]
-    b = T_TITRE + 0.5
-    while b < DUREE - 3:
-        for idx, dd in phrase:
-            if b + dd > DUREE - 1.5: break
-            ajout(b, shaku(IN[idx], dd * 1.1, 0.12))
-            b += dd
-        b += 1.5
-    # bourdon grave tres leger
-    s += (np.sin(2 * np.pi * 73.42 * ta) * 0.03).astype(np.float32)
-    # final : gong doux
-    tg = np.arange(int(3.0 * sr)) / sr
-    gong = sum(np.sin(2 * np.pi * f * tg) * np.exp(-tg * 0.9) for f in (196, 293.66, 415.3)) * 0.06
-    ajout(DUREE - 2.6, gong)
+    if MUSIQUE is None:
+        # pulsation tres douce : un don feutre toutes les 2 temps
+        b = T_TITRE
+        while b < DUREE - 2.5:
+            ajout(b, don, 0.22)
+            b += BEAT * 2
+        # nappe (accords de la gamme in) avec attaque lente
+        ta = np.arange(n) / sr
+        accords = [(146.83, 220.0, 293.66), (155.56, 233.08, 311.13), (130.81, 196.0, 293.66), (146.83, 220.0, 293.66)]
+        lg = BEAT * 8
+        for k in range(int(DUREE / lg) + 1):
+            t0 = k * lg
+            tt = np.arange(int(lg * 1.3 * sr)) / sr
+            en = np.minimum(1, tt / 1.2) * np.minimum(1, np.maximum(0, (lg * 1.3 - tt)) / 1.0)
+            sig = sum(np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(2 * np.pi * f * 2.003 * tt) for f in accords[k % 4]) * en * 0.035
+            ajout(t0, sig.astype(np.float32))
+        # koto : arpege lent, une note par temps
+        arp = [0, 2, 3, 5, 3, 2, 0, 3]
+        b = T_TITRE; q = 0
+        while b < DUREE - 2.5:
+            ajout(b, koto(IN[arp[q % len(arp)]] / 2, 2.2, 0.16))
+            b += BEAT; q += 1
+        # melodie de shakuhachi, phrases longues et respirees
+        phrase = [(5, 2.0), (6, 1.0), (5, 1.0), (3, 2.5), (4, 1.0), (2, 1.5), (0, 3.0)]
+        b = T_TITRE + 0.5
+        while b < DUREE - 3:
+            for idx, dd in phrase:
+                if b + dd > DUREE - 1.5: break
+                ajout(b, shaku(IN[idx], dd * 1.1, 0.12))
+                b += dd
+            b += 1.5
+        # bourdon grave tres leger
+        s += (np.sin(2 * np.pi * 73.42 * ta) * 0.03).astype(np.float32)
+        # final : gong doux
+        tg = np.arange(int(3.0 * sr)) / sr
+        gong = sum(np.sin(2 * np.pi * f * tg) * np.exp(-tg * 0.9) for f in (196, 293.66, 415.3)) * 0.06
+        ajout(DUREE - 2.6, gong)
     ajout(DUREE - 2.6, odaiko, 0.4)
     # reverberation (salle de temple) : convolution avec une queue de bruit qui decroit
     tr = np.arange(int(2.2 * sr)) / sr
@@ -431,6 +434,14 @@ def audio(path):
     nfft = 1 << (L - 1).bit_length()
     wet = np.fft.irfft(np.fft.rfft(s, nfft) * np.fft.rfft(ir, nfft), nfft)[: len(s)]
     s = (s * 0.75 + wet.astype(np.float32) * 0.35).astype(np.float32)
+    if MUSIQUE is not None:
+        raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-ss", str(DEBUT_MUSIQUE), "-i", OUT + "musique/" + MUSIQUE + ".m4a",
+                              "-t", str(DUREE), "-ac", "1", "-ar", str(sr), "-f", "s16le", "-"], capture_output=True, check=True).stdout
+        m = np.frombuffer(raw, np.int16).astype(np.float32) / 32767
+        assert len(m) >= n * 0.99, "morceau trop court pour la video (DEBUT_MUSIQUE trop loin ?)"
+        s = s / max(1e-6, np.abs(s).max()) * 0.5   # taiko + sabre en effets par-dessus l'OST
+        k = min(n, len(m)); s[:k] += m[:k] / max(1e-6, np.abs(m).max())
+        fi = int(0.3 * sr); s[:fi] *= np.linspace(0, 1, fi)
     fo = int(1.2 * sr)
     s[-fo:] *= np.linspace(1, 0, fo)
     s = s / max(1e-6, np.abs(s).max()) * 0.85
