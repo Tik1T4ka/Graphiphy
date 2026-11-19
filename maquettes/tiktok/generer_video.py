@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H, FPS = 1080, 1920, 30
-DUREE = 20.0
+DUREE = 22.0
 BPM = 120
 BEAT = 60 / BPM
 ICO = "/home/user/Graphiphy/maquettes/f4_icones/"
@@ -116,6 +116,7 @@ def losange(dr, x, y, r, col):
 
 # ------------------------------------------------------------------ contenu
 NOUVEAUTES = [
+    ("SUIVIS EN JEU", "Entraîne-toi pour progresser", ["3 disciplines à entraîner", "Monte de Débutant à Maître"], OUT + "ico_suivi.png"),
     ("DASH CHAKRA", "Combat plus nerveux", ["Esquive + saut de chakra", "Contrôle total dans les airs"], OUT + "ico_dash.png"),
     ("SYSTÈME MÉDICAL", "Le RP médecin prend vie", ["Groupes sanguins par personnage", "Dons de sang et transfusions"], OUT + "ico_medical.png"),
     ("EXÉCUTIONS", "Mises à mort cinématiques", ["Décapitations au ralenti", "Animation du bourreau au sabre"], OUT + "ico_execution.png"),
@@ -172,7 +173,7 @@ def carte(base, i, t0, t):
     """Carte facon menu 'entrainement' : coin coupe, numero en contour, puces rouges, gros bouton."""
     k = (t - t0) / D_CARTE
     e = ease(k * 7)
-    sens = [1, -1, 1, -1, 1][i % 5]
+    sens = 1 if i % 2 == 0 else -1
     x0 = 80 + (1 - e) * 1000 * sens
     y0, cw, ch = 470, 920, 1020
     if i % 2 == 0: y0 += (1 - e) * 0
@@ -280,7 +281,7 @@ def frame(t):
         sc, al = slam(t, T_FIN + 0.5, 1.8)
         coller(base, bt, W / 2, 1060, sc * p, al)
         texte(base, (W / 2, 1290), "Lien aussi en bio", BOLD(44), BLANC, alpha=int(255 * ease((k - 0.3) * 5)))
-        texte(base, (W / 2, 1360), "Dash · Médical · Coffres · Exécutions", BOLD(40), ROUGE, alpha=int(255 * ease((k - 0.4) * 5)))
+        texte(base, (W / 2, 1360), "Suivis · Dash · Médical · Coffres", BOLD(40), ROUGE, alpha=int(255 * ease((k - 0.4) * 5)))
         coller(base, C_GMOD, W / 2, 1450, 1, ease((k - 0.5) * 5))
     coup_de_sabre(base, t)
     return post(base.convert("RGB"), t)

@@ -252,11 +252,45 @@ def ico_arbre():
         d.ellipse([cx - r * 0.55, cy - r * 0.55, cx + r * 0.55, cy + r * 0.55], fill=(255, 245, 235, 255) if appris else (150, 130, 115, 255))
     finir(im, "arbre")
 
-for f in (ico_dash, ico_medical, ico_execution, ico_coffre, ico_arbre):
+# ---------------------------------------------------------------- 6. SUIVIS : cible d'entrainement + kunai plante + rangs
+def ico_suivi():
+    im = medaillon()
+    d = ImageDraw.Draw(im)
+    cy = C + N * 0.02
+    for k, (r, col) in enumerate([(0.25, (245, 240, 235)), (0.195, (200, 24, 32)), (0.14, (245, 240, 235)), (0.085, (200, 24, 32)), (0.035, (245, 240, 235))]):
+        d.ellipse([C - N * r, cy - N * r, C + N * r, cy + N * r], fill=col + (255,))
+    # ombre/relief de la cible
+    sh = masque(lambda dr: dr.ellipse([C - N * 0.25, cy - N * 0.25, C + N * 0.25, cy + N * 0.25], fill=255))
+    grad = lineaire((255, 255, 255), (0, 0, 0), 120).convert("L").point(lambda v: int((255 - v) * 0.35))
+    im.paste((0, 0, 0, 255), (0, 0), ImageChops.multiply(sh, grad))
+    # kunai plante en diagonale (pointe au centre)
+    a = -2.3
+    def kunai(dr):
+        L = N * 0.30
+        tip = (C, cy)
+        pts = [(C, cy), (C + L * 0.55, cy - N * 0.07), (C + L * 0.8, cy), (C + L * 0.55, cy + N * 0.07)]
+        dr.polygon(rot(pts, a, C, cy), fill=255)
+        dr.polygon(rot([(C + L * 0.8, cy - N * 0.022), (C + L * 1.35, cy - N * 0.022), (C + L * 1.35, cy + N * 0.022), (C + L * 0.8, cy + N * 0.022)], a, C, cy), fill=255)
+        ex, ey = rot([(C + L * 1.45, cy)], a, C, cy)[0]
+        r = N * 0.045
+        dr.ellipse([ex - r, ey - r, ex + r, ey + r], fill=255)
+        dr.ellipse([ex - r * 0.5, ey - r * 0.5, ex + r * 0.5, ey + r * 0.5], fill=0)
+    m = masque(kunai)
+    poser_symbole(im, m, (70, 70, 76), (25, 25, 30), lueur=(0, 0, 0))
+    # 3 chevrons de rang en bas
+    for k in range(3):
+        y = C + N * 0.33 - k * N * 0.0
+        x = C + (k - 1) * N * 0.07
+        d = ImageDraw.Draw(im)
+        col = (255, 255, 255, 255) if k < 2 else (120, 40, 44, 255)
+        d.polygon([(x - N * 0.025, y - N * 0.025), (x, y), (x + N * 0.025, y - N * 0.025), (x + N * 0.025, y - N * 0.005), (x, y + N * 0.02), (x - N * 0.025, y - N * 0.005)], fill=col)
+    finir(im, "suivi")
+
+for f in (ico_suivi, ico_dash, ico_medical, ico_execution, ico_coffre, ico_arbre):
     f()
 # planche de controle
-pl = Image.new("RGB", (5 * 260, 260), (12, 10, 12))
-for i, n in enumerate(["dash", "medical", "execution", "coffre", "arbre"]):
+pl = Image.new("RGB", (6 * 260, 260), (12, 10, 12))
+for i, n in enumerate(["suivi", "dash", "medical", "execution", "coffre", "arbre"]):
     pl.paste(Image.open(OUT + n + ".png").resize((250, 250), Image.LANCZOS), (i * 260 + 5, 5), Image.open(OUT + n + ".png").resize((250, 250)).split()[3])
 pl.save(OUT + "planche.png")
 print("ok")
