@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H, FPS = 1080, 1920, 30
-DUREE = 28.0
+DUREE = 20.0
 BPM = 120
 BEAT = 60 / BPM
 ICO = "/home/user/Graphiphy/maquettes/f4_icones/"
@@ -122,14 +122,28 @@ NOUVEAUTES = [
     ("COFFRES À CODE", "Protège ton butin", ["Inventaire en glisser-déposer", "Code secret à 4 chiffres"], OUT + "ico_coffre.png"),
     ("ARBRE DE TECHNIQUES", "Nouvelle interface F4", ["Style ninja, sceaux et parchemins", "Rinnegan désormais disponible"], OUT + "ico_arbre.png"),
 ]
-T_INTRO, T_TITRE = 0.0, 3.0
-T_CARTES = 6.0
-D_CARTE = 3.0
+T_INTRO, T_TITRE = 0.0, 2.0
+T_CARTES = 4.0
+D_CARTE = 2.0
 T_FIN = T_CARTES + D_CARTE * len(NOUVEAUTES)   # 23.5
 COUPES = [T_TITRE, T_CARTES] + [T_CARTES + i * D_CARTE for i in range(1, len(NOUVEAUTES))] + [T_FIN]
+HOOK = [0.0, 0.5, 1.0]
+IMPACTS = HOOK + [1.5, T_TITRE, T_TITRE + 0.5, T_TITRE + 1.0, T_TITRE + 1.5] \
+    + [T_CARTES + i * D_CARTE + d for i in range(len(NOUVEAUTES)) for d in (0.0, 0.5)] + [T_FIN, T_FIN + 0.5]
+def impact(t):
+    v = 0.0
+    for c in IMPACTS:
+        if t >= c: v = max(v, math.exp(-(t - c) * 9))
+    return v
+def slam(t, t0, s0=2.4):
+    """echelle d'un mot qui 'claque' : grand -> taille normale en 0,15 s"""
+    if t < t0: return 0.0, 0.0
+    k = min(1.0, (t - t0) / 0.15)
+    return 1 + (s0 - 1) * (1 - k) ** 2, min(1.0, (t - t0) / 0.06)
 
 # pre-rendus
-C_HOOK1 = calque_texte("TON VILLAGE", ANTON(150), BLANC, glow=ROUGE)
+C_HOOK1 = calque_texte("TON", ANTON(200), BLANC, glow=ROUGE)
+C_HOOK1B = calque_texte("VILLAGE", ANTON(200), BLANC, glow=ROUGE)
 C_HOOK2 = calque_texte("T'ATTEND.", ANTON(190), ROUGE, glow=ROUGE)
 C_TFJ = calque_texte("TFJ", ANTON(330), BLANC, glow=ROUGE)
 C_NRP = calque_texte("NARUTO RP", ANTON(120), ROUGE, glow=ROUGE)
@@ -157,10 +171,11 @@ C_GMOD = calque_texte("SERVEUR GARRY'S MOD · NARUTO RP", BOLD(40), GRIS)
 def carte(base, i, t0, t):
     """Carte facon menu 'entrainement' : coin coupe, numero en contour, puces rouges, gros bouton."""
     k = (t - t0) / D_CARTE
-    e = ease(k * 3.2)
-    sortie = ease((k - 0.88) * 8.5)
-    x0 = 80 + (1 - e) * 900 - sortie * 1100
+    e = ease(k * 7)
+    sens = [1, -1, 1, -1, 1][i % 5]
+    x0 = 80 + (1 - e) * 1000 * sens
     y0, cw, ch = 470, 920, 1020
+    if i % 2 == 0: y0 += (1 - e) * 0
     cal = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(cal)
     cc = 70
@@ -182,11 +197,11 @@ def carte(base, i, t0, t):
     dr.rectangle([x0 + 60, y0 + 345, x0 + cw - 60, y0 + 351], fill=(60, 60, 64, 255))
     dr.rectangle([x0 + 60, y0 + 345, x0 + 60 + (cw - 120) * ((i + 1) / len(NOUVEAUTES)), y0 + 351], fill=BLANC + (255,))
     # icone
-    pop = back((k - 0.08) * 4)
-    coller(cal, ICONES[i], x0 + cw / 2, y0 + 560 + 8 * math.sin(t * 3), (0.98 + 0.02 * math.sin(t * 2 * math.pi / BEAT)) * pop, 1.0, rot=3 * math.sin(t * 1.7))
+    sc, al = slam(t, t0 + 0.5, 2.0)
+    coller(cal, ICONES[i], x0 + cw / 2, y0 + 560 + 8 * math.sin(t * 4), sc * (1 + 0.04 * math.exp(-((t - t0) % BEAT) * 8)), al, rot=4 * math.sin(t * 2.3))
     # puces
     for j, p in enumerate(puces):
-        a = ease((k - 0.18 - j * 0.1) * 5)
+        a = ease((k - 0.45 - j * 0.12) * 9)
         yb = y0 + 760 + j * 70
         losange(dr, x0 + 75, yb, 11, ROUGE + (int(255 * a),))
         texte(cal, (x0 + 105 + (1 - a) * 40, yb), p, MED(40), BLANC, anchor="lm", alpha=int(255 * a))
@@ -194,6 +209,15 @@ def carte(base, i, t0, t):
     bx, by = x0 + 60, y0 + ch - 130
     dr.rectangle([bx, by, x0 + cw - 60, by + 92], fill=ROUGE + (255,))
     texte(cal, ((bx + x0 + cw - 60) / 2, by + 46), "À DÉCOUVRIR EN JEU", ANTON(52), BLANC)
+    # entree : carte inclinee qui se redresse ; sortie : zoom + fondu
+    rot_e = (1 - e) * 8 * sens
+    sortie = ease((k - 0.9) * 10)
+    if rot_e > 0.05 or rot_e < -0.05:
+        cal = cal.rotate(rot_e, resample=Image.BICUBIC, center=(W / 2, H / 2))
+    if sortie > 0:
+        z = 1 + 0.25 * sortie
+        cal = cal.resize((int(W * z), int(H * z)), Image.BILINEAR).crop((int((W * z - W) / 2), int((H * z - H) / 2), int((W * z - W) / 2) + W, int((H * z - H) / 2) + H))
+        cal.putalpha(cal.split()[3].point(lambda v: int(v * (1 - sortie))))
     base.alpha_composite(cal)
 
 def entete(base, t):
@@ -214,20 +238,22 @@ def frame(t):
     braises(ImageDraw.Draw(base, "RGBA"), t)
 
     if t < T_TITRE:
-        k = t / T_TITRE
-        coller(base, C_HOOK1, W / 2, 820, back(k * 3) * 1.0, ease(k * 4))
-        coller(base, C_HOOK2, W / 2, 1010, back((k - 0.25) * 3), ease((k - 0.25) * 4), rot=-3)
-        coller(base, SHUR, W / 2, 1320, ease((k - 0.45) * 3) * 0.8, ease((k - 0.45) * 3), rot=t * 300)
+        lignes_vitesse(base, t, 0.8)
+        for cal_, y_, t0_, r_ in ((C_HOOK1, 540, 0.0, 0), (C_HOOK1B, 800, 0.5, 0), (C_HOOK2, 1070, 1.0, -4)):
+            sc, al = slam(t, t0_)
+            coller(base, cal_, W / 2, y_, sc, al, rot=r_)
+        sc, al = slam(t, 1.5, 3.0)
+        coller(base, SHUR, W / 2, 1360, sc * 0.9, al, rot=t * 500)
     elif t < T_CARTES:
-        k = (t - T_TITRE) / (T_CARTES - T_TITRE)
+        lignes_vitesse(base, t, 0.5)
         entete(base, t)
-        coller(base, C_TFJ, W / 2, 700, back(k * 3.5), ease(k * 4))
-        coller(base, C_NRP, W / 2, 920, back((k - 0.15) * 3.5), ease((k - 0.15) * 4))
+        sc, al = slam(t, T_TITRE, 2.8); coller(base, C_TFJ, W / 2, 700, sc, al)
+        sc, al = slam(t, T_TITRE + 0.5); coller(base, C_NRP, W / 2, 920, sc, al)
         dr = ImageDraw.Draw(base)
-        lw = 520 * ease((k - 0.3) * 3)
+        lw = 520 * ease((t - T_TITRE - 0.5) * 6)
         dr.rectangle([W / 2 - lw, 1040, W / 2 + lw, 1046], fill=ROUGE + (255,))
-        coller(base, C_NOUV, W / 2, 1180, back((k - 0.4) * 3.5), ease((k - 0.4) * 4))
-        coller(base, C_SEM, W / 2, 1320, back((k - 0.5) * 3.5), ease((k - 0.5) * 4))
+        sc, al = slam(t, T_TITRE + 1.0); coller(base, C_NOUV, W / 2, 1180, sc, al)
+        sc, al = slam(t, T_TITRE + 1.5); coller(base, C_SEM, W / 2, 1320, sc, al)
     elif t < T_FIN:
         entete(base, t)
         i = min(int((t - T_CARTES) / D_CARTE), len(NOUVEAUTES) - 1)
@@ -239,7 +265,8 @@ def frame(t):
     else:
         k = (t - T_FIN) / (DUREE - T_FIN)
         entete(base, t)
-        coller(base, C_REJ, W / 2, 640, back(k * 5), ease(k * 6))
+        lignes_vitesse(base, t, 0.35)
+        sc, al = slam(t, T_FIN, 2.6); coller(base, C_REJ, W / 2, 640, sc, al)
         texte(base, (W / 2, 790), "Le village a besoin de nouveaux ninjas", MED(42), GRIS, alpha=int(255 * ease((k - 0.1) * 5)))
         # bouton lien
         p = 1 + 0.04 * math.sin(t * 2 * math.pi / BEAT)
@@ -250,12 +277,56 @@ def frame(t):
         dbt.line([(0, 0), (899, 0), (899, 259), (0, 259), (0, 0)], fill=(255, 90, 90, 255), width=3)
         texte(bt, (450, 85), "REJOINDRE LE DISCORD", ANTON(70), BLANC)
         bt.alpha_composite(C_LIEN, (450 - C_LIEN.width // 2, 175 - C_LIEN.height // 2))
-        coller(base, bt, W / 2, 1060, back((k - 0.15) * 4) * p, a)
+        sc, al = slam(t, T_FIN + 0.5, 1.8)
+        coller(base, bt, W / 2, 1060, sc * p, al)
         texte(base, (W / 2, 1290), "Lien aussi en bio", BOLD(44), BLANC, alpha=int(255 * ease((k - 0.3) * 5)))
         texte(base, (W / 2, 1360), "Dash · Médical · Coffres · Exécutions", BOLD(40), ROUGE, alpha=int(255 * ease((k - 0.4) * 5)))
         coller(base, C_GMOD, W / 2, 1450, 1, ease((k - 0.5) * 5))
-    # vignette
-    return base.convert("RGB")
+    coup_de_sabre(base, t)
+    return post(base.convert("RGB"), t)
+
+def lignes_vitesse(base, t, force):
+    dr = ImageDraw.Draw(base, "RGBA")
+    rng = random.Random(int(t * FPS))
+    for _ in range(26):
+        a = rng.uniform(0, 2 * math.pi)
+        r1 = rng.uniform(380, 700); r2 = r1 + rng.uniform(250, 700)
+        cx, cy = W / 2, H * 0.45
+        w = rng.choice([2, 3, 4, 6])
+        dr.line([(cx + math.cos(a) * r1, cy + math.sin(a) * r1), (cx + math.cos(a) * r2, cy + math.sin(a) * r2)],
+                fill=(255, 255, 255, int(rng.uniform(40, 110) * force)), width=w)
+
+def coup_de_sabre(base, t):
+    for c in COUPES:
+        u = (t - c + 0.10) / 0.22          # balaye de -0,10 s a +0,12 s autour de la coupe
+        if 0 <= u <= 1:
+            dr = ImageDraw.Draw(base, "RGBA")
+            x = -600 + u * (W + 1200)
+            ep = 140 * math.sin(math.pi * u)
+            pts = [(x - 500, H + 200), (x + 500, -200), (x + 500 + ep, -200), (x - 500 + ep, H + 200)]
+            dr.polygon(pts, fill=ROUGE + (230,))
+            dr.line([(x - 500 + ep / 2, H + 200), (x + 500 + ep / 2, -200)], fill=(255, 255, 255, 255), width=max(2, int(ep / 10)))
+
+def post(im, t):
+    imp = impact(t)
+    battement = math.exp(-((t % BEAT)) * 10) * 0.015
+    z = 1 + 0.07 * imp + battement
+    rng = random.Random(int(t * FPS) * 7 + 1)
+    dx = rng.uniform(-1, 1) * 26 * imp
+    dy = rng.uniform(-1, 1) * 26 * imp
+    if z > 1.001 or abs(dx) > 0.5:
+        ww, hh = int(W * z), int(H * z)
+        big = im.resize((ww, hh), Image.BILINEAR)
+        ox = int((ww - W) / 2 + dx); oy = int((hh - H) / 2 + dy)
+        ox = max(0, min(ww - W, ox)); oy = max(0, min(hh - H, oy))
+        im = big.crop((ox, oy, ox + W, oy + H))
+    if imp > 0.15:
+        a = np.asarray(im).copy()
+        d = int(14 * imp)
+        a[:, d:, 0] = a[:, :-d, 0]
+        a[:, :-d, 2] = a[:, d:, 2]
+        im = Image.fromarray(a)
+    return im
 
 # ------------------------------------------------------------------ son : ambiance japonaise (taiko, shakuhachi, koto, sabre)
 def audio(path):
@@ -309,7 +380,7 @@ def audio(path):
     SAB = sabre()
     # rythme : don . ka don | don ka ka . (sur 2 temps de 0,5 s)
     pas = BEAT / 2
-    motif = ["D", "", "K", "D", "D", "K", "K", ""]
+    motif = ["D", "K", "K", "D", "D", "K", "D", "K"]
     k = 0; tt = T_TITRE
     while tt < DUREE - 2.0:
         m = motif[k % len(motif)]
@@ -317,7 +388,7 @@ def audio(path):
         elif m == "K": ajout(tt, ka)
         k += 1; tt += pas
     # intro : 3 coups d'odaiko espaces + shakuhachi seul
-    for c in (0.0, 1.0, 2.0): ajout(c, odaiko, 0.9)
+    for c in HOOK + [1.5]: ajout(c, odaiko, 0.9)
     ajout(0.15, shaku(IN[0] * 2, 2.8, 0.16))
     for c in COUPES:
         ajout(c, odaiko, 0.8)
@@ -356,7 +427,7 @@ def audio(path):
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "apercu":
-        for t in [1.5, 7.5, 13.0, 17.0, 20.0, 26.0]:
+        for t in [0.55, 2.6, 4.05, 4.7, 9.0, 15.0]:
             frame(t).resize((540, 960)).save(OUT + "apercu_%04.1f.png" % t)
         sys.exit()
     audio(OUT + "son.wav")
