@@ -11,11 +11,11 @@ W, H, FPS = V.W, V.H, V.FPS
 
 # (clan, effet en plus, [(debut, fin)...] dans le clip, centre x du personnage)
 CLANS = [
-    ("SENJU",    "Explosions de bois et de feuilles",  [(24.0, 27.5)], 950),
+    ("SENJU",    "Régénère sa vie à chaque coup",      [(41.3, 45.3)], 950),
     ("UCHIHA",   "Flammes + brûlure sur la durée",      [(54.4, 57.9)], 950),
-    ("HYUGA",    "Paumes de chakra du poing souple",    [(68.7, 72.1)], 960),
+    ("HYUGA",    "Vole du chakra à chaque coup",       [(68.7, 72.1)], 960),
     ("ABURAME",  "Nuée d'insectes sur la cible",        [(88.3, 91.8)], 950),
-    ("ENSHO",    "Tourbillon de chakra doré",           [(104.6, 106.2), (107.9, 109.0)], 950),
+    ("ENSHO",    "Futon amélioré : tornade de vent",   [(104.6, 106.2), (107.9, 109.0)], 950),
     ("MUGEN",    "Explosion d'ombre à 70 dégâts",       [(124.5, 126.3), (128.5, 129.7)], 960),
     ("AYATSURI", "Marionnette et fils de chakra",       [(136.9, 140.4)], 900),
     ("JISHAKU",  "Sable doré magnétique",               [(157.2, 160.9)], 950),
@@ -47,6 +47,16 @@ def extraire():
                 subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(a), "-to", str(b), "-i", CLIP,
                                 "-vf", f"fps={FPS},crop={CW}:988:{x}:0,scale={W}:{H}:flags=lanczos,eq=contrast=1.06:saturation=1.15",
                                 "-q:v", "3", d + "/%04d.jpg"], check=True)
+def extraire_barre():
+    d = ICI + "m1_barre"
+    os.makedirs(d, exist_ok=True)
+    if not os.listdir(d):
+        a, b = CLANS[0][2][0]
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(a), "-to", str(b), "-i", CLIP,
+                        "-vf", f"fps={FPS},crop=240:32:162:963,scale=900:120:flags=lanczos", "-q:v", "2", d + "/%04d.jpg"], check=True)
+    return [d + "/" + f for f in sorted(os.listdir(d))]
+BARRE = []
+
 def images_clan(ci):
     out = []
     for (a, b) in CLANS[ci][2]:
@@ -96,6 +106,19 @@ def habillage(base, i, t0, t):
         V.texte(base, (x + 40, y + 45), "EN PLUS", V.BOLD(32), V.GRIS, anchor="lm", alpha=int(255 * a))
         V.losange(dr, x + 52, y + 102, 11, V.ROUGE + (int(255 * a),))
         V.texte(base, (x + 80, y + 102), CLANS[i][1], V.BOLD(46), V.BLANC, anchor="lm", alpha=int(255 * a))
+    # Senju : zoom sur la barre de vie qui remonte
+    if i == 0 and BARRE:
+        a2 = V.ease((k - 0.2) * 5)
+        n = min(int(k * FPS), len(BARRE) - 1)
+        bar = Image.open(BARRE[n]).convert("RGBA")
+        x, y = 90 + (1 - a2) * -300, 620
+        dr.rectangle([x - 14, y - 70, x + 900 + 14, y + 120 + 14], fill=(10, 10, 12, int(225 * a2)), outline=V.ROUGE + (int(255 * a2),), width=4)
+        V.texte(base, (x + 6, y - 36), "BARRE DE VIE", V.BOLD(34), V.GRIS, anchor="lm", alpha=int(255 * a2))
+        pulse = 0.5 + 0.5 * math.sin(t * 2 * math.pi * 2)
+        V.texte(base, (x + 900, y - 36), "+ PV À CHAQUE COUP", V.ANTON(44), (90, 220, 110), anchor="rm", alpha=int(255 * a2 * (0.6 + 0.4 * pulse)))
+        if a2 > 0.02:
+            if a2 < 1: bar.putalpha(int(255 * a2))
+            base.alpha_composite(bar, (int(x), int(y)))
     # points de progression
     for j in range(len(CLANS)):
         V.losange(dr, W / 2 + (j - 3.5) * 46, H - 110, 10 if j == i else 7, (V.ROUGE if j <= i else (80, 80, 85)) + (255,))
@@ -169,7 +192,7 @@ def audio(path):
 
 if __name__ == "__main__":
     import sys
-    extraire(); prerendus()
+    extraire(); prerendus(); BARRE.extend(extraire_barre())
     cache = {}
     if len(sys.argv) > 1 and sys.argv[1] == "apercu":
         ts = [1.0] + [d + 0.8 for d in DEBUTS] + [T_FIN + 2.0]
