@@ -21,32 +21,39 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 .titre small{display:block;font-size:40px;color:var(--gris)}
 .titre b{font-size:76px;font-weight:400}
 /* barre de poids */
-.poids{position:absolute;left:125px;top:250px;width:780px;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+.poids{position:absolute;left:125px;top:240px;width:780px;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
  background:linear-gradient(90deg,var(--rougeV) 0%,rgba(216,38,47,.85) 46%,#151517 46.2%,#151517 100%);
  clip-path:polygon(0 8%,2% 0,98% 4%,100% 30%,99% 100%,1% 94%)}
 .poids span{font-size:34px}
 /* grille */
-.grille{position:absolute;left:120px;top:320px;display:grid;grid-template-columns:repeat(5,145px);gap:20px}
-.case{position:relative;width:145px;height:145px;background:#121214;border:1px solid #232327;display:flex;align-items:center;justify-content:center}
+.grille{position:absolute;left:120px;top:356px;display:grid;grid-template-columns:repeat(5,140px);gap:18px}
+.case{position:relative;width:140px;height:140px;background:#121214;border:1px solid #232327;display:flex;align-items:center;justify-content:center}
 .case.v{background:radial-gradient(circle at 50% 50%,#1b1b1e,#101012 70%)}
 .case[data-r]{background:linear-gradient(180deg,#131315 30%,color-mix(in srgb,var(--c) 55%,#131315));border-color:color-mix(in srgb,var(--c) 70%,transparent);box-shadow:inset 0 -20px 30px -12px color-mix(in srgb,var(--c) 60%,transparent)}
 .case[data-r]:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--c)}
 .case svg{width:74px;height:74px}
 .qte{position:absolute;top:8px;right:10px;font-size:26px}
-.defil{position:absolute;left:935px;top:320px;width:6px;height:640px;background:#1b1b1e}
+.defil{position:absolute;left:905px;top:356px;width:6px;height:614px;background:#1b1b1e}
 .defil i{display:block;height:160px;margin-top:40px;background:var(--rougeV)}
 /* niveau */
-.niveau{position:absolute;left:120px;top:985px;width:820px}
+.niveau{position:absolute;left:120px;top:990px;width:790px}
 .niveau b{font-size:30px;font-weight:400;color:var(--rougeT,#e04848)}
 .niveau small{display:block;font-size:13px;color:var(--gris);margin-top:-2px}
 .niveau .barre{height:4px;background:#2a2a2e;margin-top:6px}.niveau .barre i{display:block;height:100%;width:62%;background:var(--blanc)}
+/* bascule objets / cosmetiques et filtres (memes que l'inventaire actuel) */
+.mode{position:absolute;left:560px;top:168px;display:flex;gap:30px;font-size:38px}
+.mode a{color:var(--gris);padding-bottom:4px;border-bottom:2px solid transparent}.mode a.on{color:var(--blanc);border-color:var(--rougeV)}
+.filtres{position:absolute;left:125px;top:304px;width:780px;display:flex;align-items:center;gap:26px;font-size:24px;color:var(--gris)}
+.filtres .on{color:var(--blanc);border-bottom:2px solid var(--rougeV)}
+.filtres label{margin-left:auto;font-family:Poppins;font-size:14px;display:flex;align-items:center;gap:8px;color:#c4c4ca}
+.filtres label i{width:16px;height:16px;border:1px solid #55555c;display:inline-block}
 /* personnage et equipement */
-.perso{position:absolute;left:1300px;top:150px;width:420px;height:900px;display:flex;align-items:center;justify-content:center;
+.perso{position:absolute;left:1265px;top:150px;width:400px;height:880px;display:flex;align-items:center;justify-content:center;
  border:1px dashed #44444a;color:#66666c;font-size:14px;text-align:center}
 .equip{position:absolute;width:118px;height:118px;background:#141416;border:1px solid #2c2c31;display:flex;align-items:center;justify-content:center}
 .equip svg{width:58px;height:58px;opacity:.55}
 .equip:after{content:attr(data-n);position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;color:#6c6c72}
-.hdv{position:absolute;left:1290px;top:832px;width:430px;height:58px;display:flex;align-items:center;justify-content:center;font-size:40px;
+.hdv{position:absolute;left:1250px;top:930px;width:430px;height:58px;display:flex;align-items:center;justify-content:center;font-size:40px;
  background:linear-gradient(90deg,transparent,var(--rougeV) 8%,var(--rougeV) 92%,transparent);clip-path:polygon(0 30%,5% 6%,40% 12%,70% 0,96% 10%,100% 55%,94% 96%,60% 86%,30% 100%,4% 90%)}
 </style>
 </head>
@@ -77,20 +84,43 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 
 <div class="perso">Personnage 3D du joueur<br>(modèle en jeu)</div>
 
-<!-- emplacements d'equipement : icones blanches dessinees, reprises de la config en jeu -->
-<div class="equip" data-n="Boucles d'oreilles" style="left:1160px;top:165px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><circle cx="22" cy="14" r="4"/><path d="M22 18 v6 M14 34 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0"/><circle cx="44" cy="14" r="4"/><path d="M44 18 v6 M36 34 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0"/></svg></div>
-<div class="equip" data-n="Bague" style="left:1080px;top:320px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><circle cx="32" cy="38" r="16"/><path d="M24 22 L32 12 L40 22 Z" fill="#fff"/></svg></div>
-<div class="equip" data-n="Haut" style="left:1040px;top:470px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M22 10 L32 16 L42 10 L56 20 L50 30 L44 26 V54 H20 V26 L14 30 L8 20 Z"/></svg></div>
-<div class="equip" data-n="Gants" style="left:1040px;top:620px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M20 54 V30 L16 22 M20 30 V12 M28 28 V8 M36 28 V10 M44 30 V16 L50 26 L46 40 L40 54 Z"/></svg></div>
-<div class="equip" data-n="Bas" style="left:1080px;top:770px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M18 10 H46 L50 56 H38 L32 26 L26 56 H14 Z"/></svg></div>
-<div class="equip" data-n="Bottes" style="left:1160px;top:920px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M18 8 H34 V36 L52 42 V54 H14 V40 Z"/></svg></div>
-
-<div class="equip" data-n="Masque" style="left:1660px;top:165px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><path d="M12 14 H52 V34 C52 48 42 56 32 56 C22 56 12 48 12 34 Z"/><path d="M20 28 L28 26 L28 32 Z M44 28 L36 26 L36 32 Z" fill="#fff"/></svg></div>
-<div class="equip" data-n="Lunettes" style="left:1740px;top:320px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><path d="M6 28 H58 M10 28 V36 a8 8 0 0 0 16 0 V28 M38 28 V36 a8 8 0 0 0 16 0 V28 M26 30 H38"/></svg></div>
-<div class="equip" data-n="Sac à dos" style="left:1780px;top:470px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M24 14 V10 H40 V14 M14 24 a10 10 0 0 1 10 -10 H40 a10 10 0 0 1 10 10 V54 H14 Z M22 36 H42 V48 H22 Z"/></svg></div>
-<div class="equip" data-n="Armure" style="left:1780px;top:620px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M32 8 L52 16 V32 C52 44 44 52 32 56 C20 52 12 44 12 32 V16 Z M32 8 V56"/></svg></div>
-<div class="equip" data-n="Collier" style="left:1740px;top:770px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3"><path d="M12 12 C14 34 50 34 52 12"/><path d="M32 30 L40 42 L32 54 L24 42 Z" fill="#fff"/></svg></div>
-<div class="equip" data-n="Arme" style="left:1660px;top:920px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M50 8 L22 36 M18 32 L32 46 M24 40 L12 52"/></svg></div>
+<div class="mode t"><a id="m-objets">OBJETS</a><a id="m-cosm">COSMÉTIQUES</a></div>
+<div class="filtres t" id="filtres"></div>
+<div id="equip"></div>
+<script>
+// emplacements et positions repris de sh_config.lua (Inventory.Config["accessories"]), 8 par cote
+const I={
+ collier:'<path d="M12 12 C14 34 50 34 52 12"/><path d="M32 30 L40 42 L32 54 L24 42 Z" fill="#fff"/>',
+ boucles:'<circle cx="22" cy="14" r="4"/><path d="M22 18 v6 M14 34 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0"/><circle cx="44" cy="14" r="4"/><path d="M44 18 v6 M36 34 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0"/>',
+ gants:'<path d="M20 54 V30 L16 22 M20 30 V12 M28 28 V8 M36 28 V10 M44 30 V16 L50 26 L46 40 L40 54 Z"/>',
+ bagues:'<circle cx="32" cy="38" r="16"/><path d="M24 22 L32 12 L40 22 Z" fill="#fff"/>',
+ jambes:'<path d="M18 10 H46 L50 56 H38 L32 26 L26 56 H14 Z"/>',
+ katana:'<path d="M52 8 L22 38 M16 34 L30 48 M22 42 L10 54"/>',
+ torse:'<path d="M32 8 L52 16 V32 C52 44 44 52 32 56 C20 52 12 44 12 32 V16 Z M32 8 V56"/>',
+ bottes:'<path d="M18 8 H34 V36 L52 42 V54 H14 V40 Z"/>',
+ chapeau:'<path d="M6 44 C20 50 44 50 58 44 C50 40 46 38 44 22 C40 12 24 12 20 22 C18 38 14 40 6 44 Z"/>',
+ masque:'<path d="M12 14 H52 V34 C52 48 42 56 32 56 C22 56 12 48 12 34 Z"/><path d="M20 28 L28 26 L28 32 Z M44 28 L36 26 L36 32 Z" fill="#fff"/>',
+ bijou:'<path d="M20 10 H44 L52 22 L32 54 L12 22 Z M12 22 H52 M26 10 L22 22 L32 54 L42 22 L38 10"/>',
+ tenue:'<path d="M22 10 L32 16 L42 10 L56 20 L50 30 L44 26 V54 H20 V26 L14 30 L8 20 Z"/>',
+ skin:'<path d="M52 8 L22 38 M16 34 L30 48 M22 42 L10 54"/><circle cx="46" cy="40" r="6"/><path d="M40 46 L36 52 M52 34 L56 30"/>',
+ catalyseur:'<circle cx="32" cy="32" r="10"/><path d="M32 6 V16 M32 48 V58 M6 32 H16 M48 32 H58 M14 14 L21 21 M43 43 L50 50 M14 50 L21 43 M43 21 L50 14"/>',
+ sac:'<path d="M24 14 V10 H40 V14 M14 24 a10 10 0 0 1 10 -10 H40 a10 10 0 0 1 10 10 V54 H14 Z M22 36 H42 V48 H22 Z"/>',
+ animal:'<circle cx="20" cy="22" r="5"/><circle cx="32" cy="16" r="5"/><circle cx="44" cy="22" r="5"/><path d="M18 44 C18 34 26 30 32 30 C38 30 46 34 46 44 C46 52 38 52 32 50 C26 52 18 52 18 44 Z"/>',
+};
+const M={
+ objets:{filtres:['MATÉRIAUX','ÉQUIPEMENT'],slots:[
+  ['Collier','collier',.615,.181],['Boucles d\'oreilles','boucles',.848,.181],['Gants','gants',.583,.345],['Bagues','bagues',.876,.345],
+  ['Jambes','jambes',.583,.51],['Torse','torse',.876,.51],['Katana','katana',.583,.684],['Bottes','bottes',.876,.684]]},
+ cosm:{filtres:['COSTUMES','KATANA','ACCESSOIRES'],slots:[
+  ['Chapeau','chapeau',.626,.328],['Masque','masque',.844,.328],['Skin de katana','skin',.504,.51],['Bijou','bijou',.583,.51],
+  ['Sac à dos','sac',.876,.51],['Catalyseur','catalyseur',.504,.684],['Tenue','tenue',.583,.684],['Animal','animal',.876,.684]]},
+};
+const mode=location.hash==='#cosmetiques'?'cosm':'objets';
+document.getElementById(mode==='cosm'?'m-cosm':'m-objets').className='on';
+document.getElementById('filtres').innerHTML=M[mode].filtres.map((f,i)=>`<span${i===0&&mode==='cosm'?' class="on"':''}>${f}</span>`).join('')+'<label><i></i>Trier par rareté</label>';
+document.getElementById('equip').innerHTML=M[mode].slots.map(([n,ic,x,y])=>
+ `<div class="equip" data-n="${n}" style="left:${Math.round(x*1920)}px;top:${Math.round(y*1080)}px"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">${I[ic]}</svg></div>`).join('');
+</script>
 
 <div class="hdv t">HÔTEL DE VENTE</div>
 </body>
