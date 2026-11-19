@@ -5,109 +5,102 @@
 <title>TFJ F4 Natures</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=block" rel="stylesheet">
 <style>
-/* Onglet Natures du F4, meme style que maquette_f4_classe.html */
-:root{--noir:#09090a;--bord:#2a2a2e;--gris:#8a8a92;--gris2:#3a3a40;--blanc:#f2f2f2;--rouge:#b01a1a;--rougeV:#d8262f;--rougeT:#e04848}
+/* Meme disposition que le F4 "Classe" actuel, style TFJ noir / rouge / blanc.
+   Images : deposer les fichiers dans images/ avec les noms indiques sur chaque emplacement. */
+:root{--noir:#09090a;--bord:#2a2a2e;--gris:#8a8a92;--gris2:#3a3a40;--blanc:#f2f2f2;--rouge:#b01a1a;--rougeV:#d8262f}
 *{box-sizing:border-box;margin:0;padding:0}
 body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Poppins,sans-serif;color:var(--blanc);
  background:radial-gradient(1100px 500px at 50% 100%,rgba(176,26,26,.35),transparent 70%),radial-gradient(700px 500px at 0% 0%,rgba(176,26,26,.25),transparent 70%),var(--noir)}
 .t{font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+/* emplacement d'image : cadre pointille tant que l'image n'est pas fournie */
+.slot{position:absolute;display:flex;align-items:center;justify-content:center;border:1px dashed #55555c;color:#77777e;font-size:13px;text-align:center}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.slot img.ko{display:none}
+.slot:has(img:not(.ko)){border:none;color:transparent}
+/* onglets du haut */
 .nav{position:absolute;top:34px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:38px}
 .nav a{font-size:34px;color:var(--gris);padding-bottom:6px;border-bottom:2px solid transparent}
+.nav a{display:flex;align-items:center;gap:10px}
 .nav a.on{color:var(--blanc);border-color:var(--rougeV)}
-.nav img{width:190px;height:130px;object-fit:contain;margin:0 6px}
-/* colonnes d'arbre */
-.col{position:absolute;top:175px;width:520px;height:820px}
-.col .fond{position:absolute;inset:0 0 80px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(176,26,26,.12) 70%,transparent);border:1px solid #1d1d21}
-.col.on .fond{border-color:rgba(216,38,47,.6);background:linear-gradient(180deg,rgba(216,38,47,.08),rgba(216,38,47,.2) 70%,transparent)}
-.kanji{position:absolute;right:22px;top:6px;font-size:120px;line-height:1;color:transparent;-webkit-text-stroke:1.5px #4a4a52;font-family:serif}
-.rang{position:absolute;left:22px;font-size:26px;color:#55555c}
-.ligne{position:absolute;left:60px;right:20px;height:1px;background:#1f1f23}
-.col svg{position:absolute;inset:0;width:520px;height:740px}
+.nav .logo{position:relative;width:190px;height:130px;margin:0 6px}
+/* colonnes */
+.col{position:absolute;top:175px;width:290px;height:820px}
+.col:before{content:"";position:absolute;inset:0 10px 80px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(176,26,26,.12) 70%,transparent);border:1px solid #1d1d21}
+.col.on:before{border-color:rgba(216,38,47,.6);background:linear-gradient(180deg,rgba(216,38,47,.10),rgba(216,38,47,.22) 70%,transparent)}
+.palier{position:absolute;left:0;right:0;display:flex;justify-content:center}
+/* icone de la technique : reprise telle quelle du skill tree existant */
+.palier .gem{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,#2a2a2e,#151517 70%);border:1px solid #3a3a40}
+.val{font-size:42px;line-height:1;display:flex;align-items:center;gap:6px}
+.val i{font-style:normal;color:var(--rougeV);font-size:26px}
+.sous{font-size:13px;color:var(--gris);margin-top:2px}
+.illu{left:-15px;top:440px;width:320px;height:300px}
 .nom{position:absolute;left:0;right:0;top:742px;text-align:center}
-.nom .t{position:relative;display:inline-block;font-size:64px;line-height:1;padding:4px 30px 0}
+.nom .t{position:relative;display:inline-flex;align-items:center;gap:12px;font-size:64px;line-height:1;padding:4px 26px 0}
+/* trace de pinceau sous le titre */
 .nom .t:before{content:"";position:absolute;inset:6px -6px 0;z-index:-1;background:linear-gradient(90deg,transparent,#3a0a0c 18%,#5a0f12 50%,#3a0a0c 82%,transparent);clip-path:polygon(0 30%,6% 8%,22% 16%,40% 0,63% 12%,80% 2%,96% 14%,100% 60%,92% 92%,70% 82%,48% 100%,26% 86%,8% 96%)}
-.nom small{display:block;font-size:13px;color:var(--gris);margin-top:2px}
-/* panneau de detail */
-.det{position:absolute;left:1480px;top:175px;width:400px;height:740px;border:1px solid var(--bord);background:#0e0e10;padding:26px 24px;display:flex;flex-direction:column}
-.det .lib{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--rougeT);text-transform:uppercase}
-.det h2{font-size:46px;line-height:.95;margin-top:6px}
-.niv{display:flex;margin-top:18px;border:1px solid var(--bord)}
-.niv div{flex:1;text-align:center;padding:8px 0;font-size:13px;color:var(--gris)}
-.niv .on{background:var(--rougeV);color:var(--blanc);font-weight:600}
-.desc{font-size:14px;color:#c4c4ca;line-height:1.55;margin-top:18px}
-.stats{margin-top:18px;border-top:1px solid var(--bord)}
-.stats div{display:flex;justify-content:space-between;padding:10px 2px;border-bottom:1px solid var(--bord);font-size:14px;color:var(--gris)}
-.stats b{color:var(--blanc);font-family:'Bebas Neue';font-size:24px;font-weight:400;letter-spacing:1px}
-.cond{margin-top:20px} .cond p{font-size:13px;padding:4px 0;color:#c4c4ca}
-.cond p i{font-style:normal;display:inline-block;width:18px;color:var(--blanc)} .cond p.ko{color:var(--gris)} .cond p.ko i{color:var(--rougeT)}
-.btn{margin-top:auto;background:var(--rougeV);text-align:center;padding:14px 0 10px}
-.btn b{display:block;font-family:'Bebas Neue';font-size:34px;font-weight:400;line-height:1}
-.btn span{font-size:12px;opacity:.85}
-/* bas gauche */
-.mascotte{position:absolute;left:0;top:640px;width:340px;height:330px;object-fit:contain}
-.points{position:absolute;left:40px;top:975px;display:flex;align-items:flex-end;gap:10px}
-.points b{font-family:'Bebas Neue';font-size:96px;line-height:.8;font-weight:400}
-.points span{font-size:30px;line-height:1}
+.nom svg{width:46px;height:46px}
+/* bas */
+.mascotte{left:0;top:640px;width:340px;height:330px}
+.gemmes{position:absolute;left:40px;top:975px;display:flex;align-items:flex-end;gap:10px}
+.gemmes b{font-family:'Bebas Neue';font-size:96px;line-height:.8;font-weight:400}
+.gemmes span{font-size:30px;line-height:1}
 </style>
 </head>
 <body>
-<nav class="nav t"><a class="on">NATURES</a><a>STYLES</a><img src="images/logo.png"><a>CLASSES</a><a>CLANS</a><a>KEKKEI GENKAI</a></nav>
+<nav class="nav t">
+  <a class="on">NATURES</a><a>STYLES</a>
+  <div class="slot logo">logo.png<img src="images/logo.png" onerror="this.className='ko'"></div>
+  <a>CLASSES</a><a>CLANS</a><a>KEKKEI GENKAI</a>
+</nav>
 
-<!-- noeud : rond = icone existante de la technique. appris = blanc, disponible = rouge, verrouille = gris pointille -->
-<svg width="0" height="0" style="position:absolute"><defs>
-  <radialGradient id="ic"><stop offset="0" stop-color="#2c2c30"/><stop offset="1" stop-color="#141416"/></radialGradient>
-  <g id="appris"><circle r="34" fill="url(#ic)" stroke="#f2f2f2" stroke-width="3"/></g>
-  <g id="dispo"><circle r="44" fill="#d8262f" opacity=".18"/><circle r="34" fill="url(#ic)" stroke="#d8262f" stroke-width="3"/></g>
-  <g id="verrou"><circle r="34" fill="#111113" stroke="#3a3a40" stroke-width="2" stroke-dasharray="5 5"/><path d="M-7 -2 h14 v12 h-14 z M-4 -2 v-5 a4 4 0 0 1 8 0 v5" fill="none" stroke="#55555c" stroke-width="2.5"/></g>
-  <g id="choisi"><circle r="44" fill="none" stroke="#f2f2f2" stroke-width="1.5" stroke-dasharray="3 6"/></g>
-</defs></svg>
 
-<div class="col on" style="left:370px">
-  <div class="fond"></div><div class="kanji">火</div>
-  <div class="rang t" style="top:56px">S</div><div class="rang t" style="top:186px">A</div><div class="rang t" style="top:316px">B</div><div class="rang t" style="top:446px">C</div><div class="rang t" style="top:576px">D</div>
-  <div class="ligne" style="top:135px"></div><div class="ligne" style="top:265px"></div><div class="ligne" style="top:395px"></div><div class="ligne" style="top:525px"></div>
-  <svg viewBox="0 0 520 740">
-    <g fill="none" stroke-width="3">
-      <path d="M200 590 V460" stroke="#f2f2f2"/><path d="M320 590 C320 530 320 520 320 460" stroke="#f2f2f2"/>
-      <path d="M200 460 C200 400 260 400 260 330" stroke="#d8262f"/><path d="M320 460 C320 400 260 400 260 330" stroke="#d8262f"/>
-      <path d="M260 330 V200 M260 200 V70" stroke="#3a3a40" stroke-dasharray="6 6"/>
-    </g>
-    <use href="#verrou" x="260" y="70"/><use href="#verrou" x="260" y="200"/>
-    <use href="#dispo" x="260" y="330"/><use href="#choisi" x="260" y="330"/>
-    <use href="#appris" x="200" y="460"/><use href="#dispo" x="320" y="460"/>
-    <use href="#appris" x="200" y="590"/><use href="#appris" x="320" y="590"/>
-  </svg>
-  <div class="nom"><div class="t">KATON</div><small>4 / 7 techniques apprises</small></div>
+<!-- 5 colonnes = 5 natures du skill tree (icones de techniques existantes) -->
+<div class="col on" style="left:360px">
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
+  <div class="slot illu">katon.png<img src="images/katon.png" onerror="this.className='ko'"></div>
+  <div class="nom"><div class="t">KATON</div></div>
 </div>
 
-<div class="col" style="left:925px">
-  <div class="fond"></div><div class="kanji">風</div>
-  <div class="rang t" style="top:56px">S</div><div class="rang t" style="top:186px">A</div><div class="rang t" style="top:316px">B</div><div class="rang t" style="top:446px">C</div><div class="rang t" style="top:576px">D</div>
-  <div class="ligne" style="top:135px"></div><div class="ligne" style="top:265px"></div><div class="ligne" style="top:395px"></div><div class="ligne" style="top:525px"></div>
-  <svg viewBox="0 0 520 740">
-    <g fill="none" stroke-width="3">
-      <path d="M260 590 C260 530 200 520 200 460" stroke="#d8262f"/><path d="M260 590 C260 530 320 520 320 460" stroke="#3a3a40" stroke-dasharray="6 6"/>
-      <path d="M200 460 C200 400 260 400 260 330 V70" stroke="#3a3a40" stroke-dasharray="6 6"/>
-    </g>
-    <use href="#verrou" x="260" y="70"/><use href="#verrou" x="260" y="200"/><use href="#verrou" x="260" y="330"/>
-    <use href="#dispo" x="200" y="460"/><use href="#verrou" x="320" y="460"/>
-    <use href="#appris" x="260" y="590"/>
-  </svg>
-  <div class="nom"><div class="t">FÛTON</div><small>1 / 6 techniques apprises</small></div>
+<div class="col" style="left:665px">
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
+  <div class="slot illu">futon.png<img src="images/futon.png" onerror="this.className='ko'"></div>
+  <div class="nom"><div class="t">FÛTON</div></div>
 </div>
 
-<div class="det">
-  <div class="lib">Katon · Rang B · Ninjutsu</div>
-  <h2 class="t">BOULE DE FEU SUPRÊME</h2>
-  <div class="niv"><div class="on">Niveau I</div><div>Niveau II</div><div>Niveau III</div></div>
-  <p class="desc">L'utilisateur malaxe son chakra et crache une immense boule de feu qui embrase tout sur son passage.</p>
-  <div class="stats"><div>Dégâts<b>350</b></div><div>Chakra<b>80</b></div><div>Recharge<b>14 s</b></div><div>Portée<b>1200</b></div></div>
-  <div class="cond"><div class="lib" style="margin-bottom:6px">Conditions</div>
-    <p><i>✓</i>2 points de compétence</p><p><i>✓</i>Débloquer « Flamme du phénix »</p><p class="ko"><i>✕</i>Être au moins Chûnin</p></div>
-  <div class="btn"><b>APPRENDRE</b><span>2 points de compétence</span></div>
+<div class="col" style="left:970px">
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
+  <div class="slot illu">raiton.png<img src="images/raiton.png" onerror="this.className='ko'"></div>
+  <div class="nom"><div class="t">RAITON</div></div>
 </div>
 
-<img class="mascotte" src="images/mascotte.png">
-<div class="points t"><b>12</b><span>POINTS DE<br>COMPÉTENCE</span></div>
+<div class="col" style="left:1275px">
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
+  <div class="slot illu">doton.png<img src="images/doton.png" onerror="this.className='ko'"></div>
+  <div class="nom"><div class="t">DOTON</div></div>
+</div>
+
+<div class="col" style="left:1580px">
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
+  <div class="slot illu">suiton.png<img src="images/suiton.png" onerror="this.className='ko'"></div>
+  <div class="nom"><div class="t">SUITON</div></div>
+</div>
+
+<div class="slot mascotte">mascotte.png<img src="images/mascotte.png" onerror="this.className='ko'"></div>
+<div class="gemmes t"><b>34</b><span>POINTS DE<br>COMPÉTENCE</span></div>
 </body>
 </html>
