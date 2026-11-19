@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>TFJ Classe</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=block" rel="stylesheet">
+<style>
+/* Style B "entrainement" (maquettes/STYLE_UI.md). Bebas Neue remplace Chinese Rocks pour la maquette. */
+:root{--noir:#0a0a0b;--carte:#111113;--bord:#2a2a2e;--gris:#7c7c84;--gris2:#3a3a40;--blanc:#f2f2f2;--rouge:#b01a1a;--rougeV:#d8262f;--rougeT:#e04848}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1920px;height:1080px;overflow:hidden;font-family:Poppins,sans-serif;color:var(--blanc);
+ background:radial-gradient(900px 600px at 0% 0%,rgba(176,26,26,.55),transparent 70%),var(--noir)}
+.titre{font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+/* barre du haut */
+.top{height:72px;display:flex;align-items:center;gap:28px;padding:0 40px;border-bottom:1px solid var(--bord)}
+.logo{display:flex;align-items:center;gap:10px;font-size:34px}
+.los{width:12px;height:12px;transform:rotate(45deg);border:2px solid var(--rougeV);display:inline-block}
+.ariane{font-size:14px;color:var(--gris)} .ariane b{color:var(--blanc);font-weight:600}
+.onglets{display:flex;gap:6px;margin-left:40px}
+.onglets a{font-family:'Bebas Neue';font-size:24px;letter-spacing:1px;color:var(--gris);padding:22px 18px 18px;border-bottom:2px solid transparent;text-decoration:none}
+.onglets a.on{color:var(--blanc);border-color:var(--rougeV)}
+.droite{margin-left:auto;display:flex;gap:12px;align-items:center}
+.btn-l{border:1px solid var(--gris2);padding:9px 16px;font-size:13px;font-weight:600;background:#0e0e10}
+.x{font-size:26px;color:var(--gris);padding:0 8px}
+/* en-tete */
+.ent{display:flex;align-items:flex-end;gap:24px;padding:34px 40px 26px}
+.ent h1{font-size:64px;line-height:.9}
+.ent p{font-size:15px;color:var(--gris);padding-bottom:8px}
+/* grille */
+.grille{display:grid;grid-template-columns:330px repeat(4,1fr);gap:20px;padding:0 40px}
+.coupe{clip-path:polygon(0 0,calc(100% - 26px) 0,100% 26px,100% 100%,0 100%)}
+.cadre{position:relative;background:var(--bord);padding:1px;height:820px}
+.cadre>div{background:var(--carte);height:100%;padding:24px 22px;display:flex;flex-direction:column}
+.cadre.actif{background:var(--rougeV)}
+.petit{font-size:13px;color:var(--gris)}
+/* colonne gauche */
+.gemmes{font-family:'Bebas Neue';font-size:110px;line-height:.85;margin-top:8px}
+.gemmes small{font-size:30px;color:var(--gris);margin-left:6px}
+.res{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--bord);padding:12px 14px;margin-top:18px;font-size:14px}
+.res b{font-family:'Bebas Neue';font-size:28px;font-weight:400}
+.sep{height:1px;background:var(--bord);margin:24px 0}
+.etapes li{list-style:none;display:flex;align-items:center;gap:14px;padding:11px 0;font-size:15px;font-weight:600}
+.etapes li span{margin-left:auto;font-size:13px;color:var(--gris);font-weight:400}
+.etapes .l{width:10px;height:10px;transform:rotate(45deg);flex:none}
+.fait .l{background:var(--blanc)} .cours .l{background:var(--rougeV);box-shadow:0 0 10px var(--rougeV)} .verrou{color:var(--gris2)} .verrou .l{border:1px solid var(--gris2)}
+.puces{margin-top:auto} .puces li{list-style:none;font-size:13px;color:#b4b4ba;padding:5px 0 5px 16px;position:relative}
+.puces li:before{content:"";position:absolute;left:0;top:12px;width:6px;height:6px;background:var(--rougeV);transform:rotate(45deg)}
+/* cartes stats */
+.num{position:absolute;top:16px;right:24px;font-family:'Bebas Neue';font-size:92px;line-height:1;color:transparent;-webkit-text-stroke:1.5px #4a4a52}
+.carte h2{font-size:58px;line-height:.9;margin-top:4px}
+.prog{margin-top:18px;display:flex;justify-content:space-between;font-size:13px;color:var(--gris)}
+.prog b{color:var(--blanc);font-size:16px}
+.barre{height:4px;background:var(--gris2);margin-top:8px} .barre i{display:block;height:100%;background:var(--blanc)}
+.embleme{position:relative;height:250px;display:flex;align-items:center;justify-content:center;margin:12px 0 4px}
+.embleme:before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(216,38,47,.45),transparent 65%)}
+.embleme svg{position:relative;width:150px;height:150px}
+.paliers li{list-style:none;display:flex;align-items:center;gap:14px;border:1px solid var(--bord);padding:9px 12px;margin-bottom:8px;background:#0d0d0f}
+.paliers .l{width:10px;height:10px;transform:rotate(45deg);flex:none;border:1px solid var(--gris2)}
+.paliers .ok .l{background:var(--blanc);border-color:var(--blanc)}
+.paliers .suiv{border-color:var(--rouge)} .paliers .suiv .l{background:var(--rougeV);border-color:var(--rougeV)}
+.paliers .nom{font-size:13px;color:var(--gris);width:62px}
+.paliers .val{font-family:'Bebas Neue';font-size:30px;line-height:1}
+.paliers .bonus{margin-left:auto;font-size:12px;color:#b4b4ba}
+.paliers .lock{opacity:.45}
+.action{margin-top:auto;background:var(--rougeV);text-align:center;padding:14px 0 12px}
+.action b{display:block;font-family:'Bebas Neue';font-size:34px;font-weight:400;line-height:1}
+.action span{font-size:12px;opacity:.85}
+.action.max{background:#1b1b1f;border:1px solid var(--gris2);color:var(--gris)}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo titre"><span class="los"></span>TFJ</div>
+  <div class="ariane">Progression &nbsp;/&nbsp; <b>Classe</b></div>
+  <nav class="onglets"><a>Jutsu</a><a class="on">Classe</a><a>Art de combat</a><a>Formes</a></nav>
+  <div class="droite"><div class="btn-l">Réinitialiser la classe · 2 jetons</div><div class="x">×</div></div>
+</div>
+
+<div class="ent"><h1 class="titre">AMÉLIORATION DE CLASSE</h1><p>Quatre statistiques, quatre paliers chacune. Une gemme débloque le palier suivant.</p></div>
+
+<div class="grille">
+  <!-- colonne gauche -->
+  <div class="cadre coupe"><div class="coupe">
+    <div class="petit">Gemmes disponibles</div>
+    <div class="gemmes">34<small>gemmes</small></div>
+    <div class="res"><span>Jetons de réinitialisation</span><b>× 2</b></div>
+    <div class="sep"></div>
+    <div class="petit" style="margin-bottom:6px">Rang de la classe</div>
+    <ul class="etapes">
+      <li class="fait"><i class="l"></i>Initié<span>4 paliers</span></li>
+      <li class="fait"><i class="l"></i>Aguerri<span>8 paliers</span></li>
+      <li class="cours"><i class="l"></i>Vétéran<span>9 / 12</span></li>
+      <li class="verrou"><i class="l"></i>Maître<span>16 paliers</span></li>
+    </ul>
+    <ul class="puces">
+      <li>Chaque palier coûte une gemme.</li>
+      <li>Les paliers se débloquent dans l'ordre.</li>
+      <li>Un jeton rend toutes les gemmes dépensées.</li>
+    </ul>
+  </div></div>
+
+  <!-- 01 VITESSE -->
+  <div class="cadre coupe carte"><div class="coupe">
+    <div class="num">01</div>
+    <div class="petit">Statistique</div><h2 class="titre">VITESSE</h2>
+    <div class="prog"><span>Progression</span><b>2 / 4</b></div><div class="barre"><i style="width:50%"></i></div>
+    <div class="embleme"><svg viewBox="0 0 100 100" fill="none" stroke="#f2f2f2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M30 70 L72 28" stroke-width="7"/><path d="M72 28 L84 16 L80 32 Z" fill="#f2f2f2"/>
+      <circle cx="26" cy="74" r="6"/><path d="M14 52 L40 52 M8 62 L30 62 M18 42 L46 42" stroke="#d8262f"/>
+    </svg></div>
+    <ul class="paliers">
+      <li class="ok"><i class="l"></i><span class="nom">Palier I</span><span class="val">+7</span></li>
+      <li class="ok"><i class="l"></i><span class="nom">Palier II</span><span class="val">+14</span></li>
+      <li class="suiv"><i class="l"></i><span class="nom">Palier III</span><span class="val">+21</span></li>
+      <li class="lock"><i class="l"></i><span class="nom">Palier IV</span><span class="val">+28</span></li>
+    </ul>
+    <div class="action"><b>AMÉLIORER</b><span>1 gemme · palier III</span></div>
+  </div></div>
+
+  <!-- 02 DEGATS (carte active) -->
+  <div class="cadre coupe carte actif"><div class="coupe">
+    <div class="num">02</div>
+    <div class="petit">Statistique</div><h2 class="titre">DÉGÂTS</h2>
+    <div class="prog"><span>Progression</span><b>1 / 4</b></div><div class="barre"><i style="width:25%"></i></div>
+    <div class="embleme"><svg viewBox="0 0 100 100" fill="none" stroke="#f2f2f2" stroke-width="4" stroke-linejoin="round">
+      <path d="M50 8 L58 38 L88 30 L64 52 L84 78 L54 66 L46 94 L40 64 L12 74 L32 50 L10 30 L42 38 Z"/>
+      <path d="M50 32 L54 46 L66 44 L58 54 L64 66 L50 60 L38 68 L42 54 L34 44 L46 46 Z" fill="#d8262f" stroke="none"/>
+    </svg></div>
+    <ul class="paliers">
+      <li class="ok"><i class="l"></i><span class="nom">Palier I</span><span class="val">+3</span></li>
+      <li class="suiv"><i class="l"></i><span class="nom">Palier II</span><span class="val">+6</span></li>
+      <li class="lock"><i class="l"></i><span class="nom">Palier III</span><span class="val">+9</span></li>
+      <li class="lock"><i class="l"></i><span class="nom">Palier IV</span><span class="val">+12</span></li>
+    </ul>
+    <div class="action"><b>AMÉLIORER</b><span>1 gemme · palier II</span></div>
+  </div></div>
+
+  <!-- 03 SANTE -->
+  <div class="cadre coupe carte"><div class="coupe">
+    <div class="num">03</div>
+    <div class="petit">Statistique</div><h2 class="titre">SANTÉ</h2>
+    <div class="prog"><span>Progression</span><b>2 / 4</b></div><div class="barre"><i style="width:50%"></i></div>
+    <div class="embleme"><svg viewBox="0 0 100 100" fill="none" stroke="#f2f2f2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M50 84 C30 70 18 58 18 40 C18 28 27 20 37 20 C44 20 48 24 50 28 C52 24 56 20 63 20 C73 20 82 28 82 40 C82 58 70 70 50 84 Z"/>
+      <path d="M24 50 L38 50 L44 38 L52 62 L58 48 L76 48" stroke="#d8262f"/>
+    </svg></div>
+    <ul class="paliers">
+      <li class="ok"><i class="l"></i><span class="nom">Palier I</span><span class="val">+75</span><span class="bonus">régén. 2,5 %</span></li>
+      <li class="ok"><i class="l"></i><span class="nom">Palier II</span><span class="val">+150</span><span class="bonus">régén. 7,5 %</span></li>
+      <li class="suiv"><i class="l"></i><span class="nom">Palier III</span><span class="val">+225</span><span class="bonus">régén. 10 %</span></li>
+      <li class="lock"><i class="l"></i><span class="nom">Palier IV</span><span class="val">+300</span><span class="bonus">régén. 10 %</span></li>
+    </ul>
+    <div class="action"><b>AMÉLIORER</b><span>1 gemme · palier III</span></div>
+  </div></div>
+
+  <!-- 04 CHAKRA (au maximum) -->
+  <div class="cadre coupe carte"><div class="coupe">
+    <div class="num">04</div>
+    <div class="petit">Statistique</div><h2 class="titre">CHAKRA</h2>
+    <div class="prog"><span>Progression</span><b>4 / 4</b></div><div class="barre"><i style="width:100%"></i></div>
+    <div class="embleme"><svg viewBox="0 0 100 100" fill="none" stroke="#f2f2f2" stroke-width="4" stroke-linecap="round">
+      <path d="M50 50 m0 -4 a4 4 0 1 1 -4 4 a10 10 0 0 1 10 -10 a16 16 0 0 1 16 16 a22 22 0 0 1 -22 22 a28 28 0 0 1 -28 -28 a34 34 0 0 1 34 -34"/>
+      <circle cx="50" cy="50" r="44" stroke="#d8262f" stroke-dasharray="4 8"/>
+    </svg></div>
+    <ul class="paliers">
+      <li class="ok"><i class="l"></i><span class="nom">Palier I</span><span class="val">+100</span><span class="bonus">recharge −5 %</span></li>
+      <li class="ok"><i class="l"></i><span class="nom">Palier II</span><span class="val">+200</span><span class="bonus">recharge −10 %</span></li>
+      <li class="ok"><i class="l"></i><span class="nom">Palier III</span><span class="val">+300</span><span class="bonus">recharge −15 %</span></li>
+      <li class="ok"><i class="l"></i><span class="nom">Palier IV</span><span class="val">+400</span><span class="bonus">recharge −20 %</span></li>
+    </ul>
+    <div class="action max"><b>MAXIMUM</b><span>tous les paliers débloqués</span></div>
+  </div></div>
+</div>
+</body>
+</html>
