@@ -24,6 +24,75 @@ local function Souligne(sText, sFont, x, y, iAlign, fA)
 	surface.DrawRect(x0 + tw * (1 - fA) / 2, y + th / 2 + 2, tw * fA, 2)
 end
 
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- TFJ v2 : inventaire au style du F4 (maquette maquettes/inventaire/maquette_inventaire.html du depot Graphiphy).
+-- Tout est dessine ici (plus de PNG de fond) : fond, titre, barre de poids, cases avec lueur de rarete,
+-- cadres et icones des emplacements d'equipement. Positions des panneaux et logique inchangees.
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+local TFJInv = {}
+local TFJInv_ROUGE_VIF = Color(216, 38, 47)
+local TFJInv_ROUGE_TEXTE = Color(224, 72, 72)
+local TFJInv_GRIS = Color(138, 138, 146)
+local iTFJInvPoliceH
+function TFJInv.Polices()
+	if iTFJInvPoliceH == ScrH() then return end
+	iTFJInvPoliceH = ScrH()
+	local VH = ScrH() / 100
+	-- Bebas Neue : resource/fonts/bebasneue-regular.ttf (sv_tfj_polices.lua)
+	surface.CreateFont("TFJInv.Titre", { font = "Bebas Neue", size = math.floor(VH * 7), weight = 400, extended = true })
+	surface.CreateFont("TFJInv.Menu", { font = "Bebas Neue", size = math.floor(VH * 3.7), weight = 400, extended = true })
+	surface.CreateFont("TFJInv.Mode", { font = "Bebas Neue", size = math.floor(VH * 3.5), weight = 400, extended = true })
+	surface.CreateFont("TFJInv.Barre", { font = "Bebas Neue", size = math.floor(VH * 3.1), weight = 400, extended = true })
+	surface.CreateFont("TFJInv.Filtre", { font = "Bebas Neue", size = math.floor(VH * 2.3), weight = 400, extended = true })
+	surface.CreateFont("TFJInv.Petit", { font = "Bebas Neue", size = math.floor(VH * 1.6), weight = 400, extended = true })
+end
+local tTFJInvMats = {}
+function TFJInv.Mat(sChemin)
+	if tTFJInvMats[sChemin] == nil then
+		local m = Material(sChemin, "smooth")
+		tTFJInvMats[sChemin] = (m and not m:IsError()) and m or false
+	end
+	return tTFJInvMats[sChemin] or nil
+end
+-- degrade vertical en bandes (independant des textures gui/gradient_*)
+function TFJInv.Degrade(x, y, w, h, c1, a1, c2, a2)
+	local n = 24
+	for i = 0, n - 1 do
+		local f = i / (n - 1)
+		surface.SetDrawColor(Lerp(f, c1.r, c2.r), Lerp(f, c1.g, c2.g), Lerp(f, c1.b, c2.b), Lerp(f, a1, a2))
+		surface.DrawRect(x, math.floor(y + i * h / n), w, math.ceil(h / n) + 1)
+	end
+end
+function TFJInv.Fond(w, h)
+	surface.SetDrawColor(9, 9, 10, 240)
+	surface.DrawRect(0, 0, w, h)
+	TFJInv.Degrade(0, h * 0.55, w, h * 0.45, Color(90, 15, 18), 0, Color(120, 18, 18), 110)
+end
+-- case : fond sombre, et si un objet est pose, lueur de sa rarete qui monte du bas + liseret + trait
+function TFJInv.Case(w, h, cRarete)
+	surface.SetDrawColor(18, 18, 20, 255)
+	surface.DrawRect(0, 0, w, h)
+	if cRarete then
+		TFJInv.Degrade(0, h * 0.3, w, h * 0.7, cRarete, 0, cRarete, 150)
+		surface.SetDrawColor(cRarete.r, cRarete.g, cRarete.b, 180)
+		surface.DrawOutlinedRect(0, 0, w, h, 1)
+		surface.SetDrawColor(cRarete)
+		surface.DrawRect(0, h - 3, w, 3)
+	else
+		surface.SetDrawColor(35, 35, 39, 255)
+		surface.DrawOutlinedRect(0, 0, w, h, 1)
+	end
+end
+-- icone d'emplacement (materials/tfj_inventaire/ico_<emplacement>.png)
+local tTFJInvIcones = { ["Boucles d'oreilles"] = "boucles" }
+function TFJInv.IconeEmplacement(sEquipement)
+	return TFJInv.Mat("tfj_inventaire/ico_" .. (tTFJInvIcones[sEquipement] or sEquipement) .. ".png")
+end
+function TFJInv.CouleurRarete(tItemData)
+	local tRarity = tItemData and Solve.Naruto.Inventory.Config["rarities"][tItemData.sRarity]
+	return tRarity and tRarity.cColor or nil
+end
+
 local tBackgrounds = {
 	["objects"] = GetMat("inventory_background_objects"),
 	["objects_stats"] = Solve:GetMaterial("inventory_background_objects_stats"),
@@ -246,73 +315,41 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		iWeightLerp = iWeightLerp or 0
 		iWeightLerp = Lerp(FrameTime()*5, iWeightLerp, iInvWeight/iInvMaxWeight)
 
-		local matBackground = tBackgrounds[self.sInventoryType or "objects"]
-
-		if matBackground then
-
-			-- TFJ : bandeau du haut opaque (le PNG de fond y est semi-transparent), s'arrete au trait rouge
-			surface.SetDrawColor(0, 0, 0, 255)
-			surface.DrawRect(0, 0, w, h * 124 / 1080)
-
-			surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF"])
-			surface.SetMaterial(matBackground)
-			surface.DrawTexturedRect(0, 0, w, h)
-
+		-- TFJ v2 : tout est dessine (plus de PNG de fond Solve / TFJ)
+		TFJInv.Polices()
+		local VH = h / 100
+		TFJInv.Fond(w, h)
+		local mLogo = TFJInv.Mat("tfj_skilltree/f4_logo.png")
+		if mLogo then
+			local lh = VH * 12.5
+			local lw = lh * mLogo:Width() / math.max(1, mLogo:Height())
+			surface.SetDrawColor(255, 255, 255, 255)
+			surface.SetMaterial(mLogo)
+			surface.DrawTexturedRect(w / 2 - lw / 2, VH * 3.7, lw, lh)
 		end
+		local x0, bw = w * 0.116, w * 0.335
+		draw.SimpleText("MENU", "TFJInv.Menu", x0, VH * 11.8, TFJInv_GRIS, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		draw.SimpleText("INVENTAIRE", "TFJInv.Titre", x0 - 2, VH * 14.4, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
+		-- poids : barre rouge proportionnelle, texte par-dessus
+		local by, bh = VH * 21.8, VH * 4.2
+		surface.SetDrawColor(21, 21, 23, 255)
+		surface.DrawRect(x0, by, bw, bh)
+		surface.SetDrawColor(TFJInv_ROUGE_VIF)
+		surface.DrawRect(x0, by, bw * math.Clamp(iWeightLerp, 0, 1), bh)
+		draw.SimpleText("LIMITE DE POIDS", "TFJInv.Barre", x0 + VH * 1.6, by + bh / 2, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+		draw.SimpleText(("%s / %s"):format(math.Round(iWeightLerp * iInvMaxWeight, 2), iInvMaxWeight), "TFJInv.Barre", x0 + bw - VH * 1.6, by + bh / 2, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
 
-		draw.SimpleText(Solve:FormatMoney(pLocal:GetMoney()), Solve:Font(0.02, 4), Solve:SpaceX(100), Solve:SpaceY(70), Solve.Naruto.Constants["colors"]["FFFFFF"], TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-
-		// Xp
-		local iLevel = pLocal:GetLevel()
-		local iXp = pLocal:GetXP()
-		local iMaxXp = pLocal:GetMaxXP()
-		local iRatio = iXp/iMaxXp
-
-		local iPosX = Solve:SpaceX(250)
-
-		surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF20"])
-		surface.SetMaterial(matBarreXpFond)
-		surface.DrawTexturedRect(iPosX, Solve:SpaceY(70) - iBarreXpFondH/2, iBarreXpFondW, iBarreXpFondH)
-
-		Solve:StencilMask(function()
-
-			surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF"])
-			surface.DrawRect(iPosX, Solve:SpaceY(70) - iBarreXpFondH/2, iBarreXpFondW*iRatio + 1, iBarreXpFondH)
-
-			local tPoly = {
-				{x = iPosX + iBarreXpFondW*iRatio, y = Solve:SpaceY(70) - iBarreXpFondH/2},
-				{x = iPosX + iBarreXpFondW*iRatio + 15, y = Solve:SpaceY(70) - iBarreXpFondH/2},
-				{x = iPosX + iBarreXpFondW*iRatio, y = Solve:SpaceY(70) + iBarreXpFondH/2},
-			}
-
-			surface.DrawPoly(tPoly)
-
-		end, function()
-
-			surface.SetDrawColor(TFJ_ROUGE)
-			surface.DrawRect(iPosX, Solve:SpaceY(70) - iBarreXpH/2, iBarreXpW, iBarreXpH)
-
-		end)
-
-		draw.SimpleText("Level: "..iLevel, Solve:Font(0.01, 4), iPosX + Solve:SpaceX(8), Solve:SpaceY(70), Solve.Naruto.Constants["colors"]["FFFFFF"], TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-		draw.SimpleText(("%s/%s XP"):format(math.floor(iXp), math.floor(iMaxXp)), Solve:Font(0.01, 4), iPosX + iBarreXpW + Solve:SpaceX(5), Solve:SpaceY(70) + 1, Solve.Naruto.Constants["colors"]["FFFFFF50"], TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-
-		// InvWeight
-		surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF"])
-		Solve:StencilMask(function()
-
-			surface.DrawRect(Solve:SpaceX(228), Solve:SpaceY(300), (iBarW)*iWeightLerp, iBarH)
-
-		end, function()
-
-			surface.SetMaterial(matWeightBar)
-			surface.DrawTexturedRect(Solve:SpaceX(228), Solve:SpaceY(300), iBarW, iBarH)
-
-		end)
-
-		draw.SimpleText("Poids actuel des objets", Solve:Font(0.0125, 4), Solve:SpaceX(235), Solve:SpaceY(300) + iBarH/2 + 1, Solve.Naruto.Constants["colors"]["FFFFFF"], TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-		draw.SimpleText(("%s/%s"):format(math.Round(iWeightLerp*iInvMaxWeight, 2), iInvMaxWeight), Solve:Font(0.0125, 4), Solve:SpaceX(218) + iBarW, Solve:SpaceY(300) + iBarH/2 + 1, Solve.Naruto.Constants["colors"]["FFFFFF"], TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+		-- niveau, XP et argent sous la grille
+		local iLevel, iXp, iMaxXp = pLocal:GetLevel(), pLocal:GetXP(), pLocal:GetMaxXP()
+		local ny = VH * 83.5
+		draw.SimpleText("NIVEAU " .. iLevel, "TFJInv.Barre", x0, ny, TFJInv_ROUGE_TEXTE, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		draw.SimpleText(("%s / %s XP"):format(math.floor(iXp), math.floor(iMaxXp)), "TFJInv.Petit", x0, ny + VH * 3.2, TFJInv_GRIS, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		draw.SimpleText(Solve:FormatMoney(pLocal:GetMoney()), "TFJInv.Barre", x0 + bw, ny, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+		surface.SetDrawColor(42, 42, 46, 255)
+		surface.DrawRect(x0, ny + VH * 5.4, bw, 4)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.DrawRect(x0, ny + VH * 5.4, bw * math.Clamp(iXp / math.max(1, iMaxXp), 0, 1), 4)
 
 	end
 
@@ -331,11 +368,11 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 
 	// Trier par rareté
 	local vRarityPanel = vgui.Create("DPanel", self.vInventory)
-	vRarityPanel:SetSize(Solve.ScrW*0.32, Solve.ScrH*0.027)
-	vRarityPanel:SetPos(Solve:SpaceX(228), Solve.ScrH*0.245)
+	vRarityPanel:SetSize(Solve.ScrW*0.1, Solve.ScrH*0.027)
+	vRarityPanel:SetPos(Solve.ScrW*(0.116 + 0.335 - 0.1), Solve.ScrH*0.281)
 	vRarityPanel.Paint = function(self, w, h)
 
-		draw.SimpleText("Trier par rareté", Solve:Font(0.015, 2), h*1.2, h/2, Solve.Naruto.Constants["colors"]["FFFFFF"], TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+		draw.SimpleText("Trier par rareté", Solve:Font(0.013, 2), h*1.4, h/2, Color(196, 196, 202), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
 	end
 
@@ -347,7 +384,10 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 	end
 	vCheckBox.Paint = function(self, w, h)
 
-		draw.RoundedBox(10, 0, 0, w, h, bgColor)
+		surface.SetDrawColor(18, 18, 20, 255)
+		surface.DrawRect(0, 0, w, h)
+		surface.SetDrawColor(85, 85, 92, 255)
+		surface.DrawOutlinedRect(0, 0, w, h, 1)
 
 		if self:GetChecked() then
 
@@ -369,7 +409,7 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 
 	local vFilterPanel = vgui.Create("DPanel", self.vInventory)
 	vFilterPanel:SetSize(Solve.ScrW*0.22, Solve.ScrH*0.04)
-	vFilterPanel:SetPos(Solve:SpaceX(375), Solve.ScrH*0.23)
+	vFilterPanel:SetPos(Solve.ScrW*0.116, Solve.ScrH*0.274)
 	vFilterPanel:SetPaintBackground(false)
 	vFilterPanel:DockPadding(0, 0, 0, 0)
 
@@ -381,8 +421,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		vMaterialsButton.Paint = function(_self, w, h)
 			_self.iHoverLerp = Lerp(FrameTime()*10, _self.iHoverLerp or 0, (_self:IsHovered() or SHOW_MATERIALS_ONLY) and 1 or 0)
 
-			draw.SimpleText("MATÉRIAUX", Solve:Font(0.02, 4), w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			Souligne("MATÉRIAUX", Solve:Font(0.02, 4), w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
+			draw.SimpleText("MATÉRIAUX", "TFJInv.Filtre", w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			Souligne("MATÉRIAUX", "TFJInv.Filtre", w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
 		end
 		vMaterialsButton.DoClick = function()
 			SHOW_MATERIALS_ONLY = not SHOW_MATERIALS_ONLY
@@ -398,8 +438,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		vEquipmentButton.Paint = function(_self, w, h)
 			_self.iHoverLerp = Lerp(FrameTime()*10, _self.iHoverLerp or 0, (_self:IsHovered() or SHOW_EQUIPMENT_ONLY) and 1 or 0)
 
-			draw.SimpleText("EQUIPEMENT", Solve:Font(0.02, 4), w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			Souligne("EQUIPEMENT", Solve:Font(0.02, 4), w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
+			draw.SimpleText("EQUIPEMENT", "TFJInv.Filtre", w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			Souligne("EQUIPEMENT", "TFJInv.Filtre", w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
 		end
 		vEquipmentButton.DoClick = function()
 			SHOW_EQUIPMENT_ONLY = not SHOW_EQUIPMENT_ONLY
@@ -415,8 +455,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		vTeamsButton.Paint = function(_self, w, h)
 			_self.iHoverLerp = Lerp(FrameTime()*10, _self.iHoverLerp or 0, (_self:IsHovered() or SHOW_TENUES_ONLY) and 1 or 0)
 
-			draw.SimpleText("COSTUMES", Solve:Font(0.02, 4), w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			Souligne("COSTUMES", Solve:Font(0.02, 4), w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
+			draw.SimpleText("COSTUMES", "TFJInv.Filtre", w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			Souligne("COSTUMES", "TFJInv.Filtre", w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
 		end
 		vTeamsButton.DoClick = function()
 			SHOW_TENUES_ONLY = not SHOW_TENUES_ONLY
@@ -435,8 +475,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		vKatanaButton.Paint = function(_self, w, h)
 			_self.iHoverLerp = Lerp(FrameTime()*10, _self.iHoverLerp or 0, (_self:IsHovered() or SHOW_KATANA_ONLY) and 1 or 0)
 
-			draw.SimpleText("KATANA", Solve:Font(0.02, 4), w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			Souligne("KATANA", Solve:Font(0.02, 4), w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
+			draw.SimpleText("KATANA", "TFJInv.Filtre", w/2, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			Souligne("KATANA", "TFJInv.Filtre", w/2, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
 		end
 		vKatanaButton.DoClick = function()
 			SHOW_KATANA_ONLY = not SHOW_KATANA_ONLY
@@ -455,8 +495,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		vAccessoriesButton.Paint = function(_self, w, h)
 			_self.iHoverLerp = Lerp(FrameTime()*10, _self.iHoverLerp or 0, (_self:IsHovered() or SHOW_ACCESSORIES_ONLY) and 1 or 0)
 
-			draw.SimpleText("ACCESSOIRES", Solve:Font(0.02, 4), w/1.8, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			Souligne("ACCESSOIRES", Solve:Font(0.02, 4), w/1.8, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
+			draw.SimpleText("ACCESSOIRES", "TFJInv.Filtre", w/1.8, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			Souligne("ACCESSOIRES", "TFJInv.Filtre", w/1.8, h*0.52, TEXT_ALIGN_CENTER, _self.iHoverLerp)
 		end
 		vAccessoriesButton.DoClick = function()
 			SHOW_ACCESSORIES_ONLY = not SHOW_ACCESSORIES_ONLY
@@ -777,11 +817,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		end)
 		vSlot.Paint = function(_self, w, h)
 
-			surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF"])
-			surface.SetMaterial(matCase)
-			surface.DrawTexturedRectRotated(w/2, h/2, w*1.2, h*1.2, 0)
-
 			local vItem = _self.vItem
+			local cRarete
 			if IsValid(vItem) then
 
 				if vItem._sModel then
@@ -794,25 +831,10 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 				// remove all after @
 				sItem = string.Split(sItem, "@")[1]
 
-				local tItemData = self.Config["items"][sItem]
-
-				if tItemData then
-
-					local tRarity = self.Config["rarities"][tItemData.sRarity] or {}
-					local matRarity, iRarityW, iRarityH = Solve:GetMaterial(tRarity.sMat)
-
-					if matRarity then
-
-						surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF"])
-						surface.SetMaterial(matRarity)
-						surface.DrawTexturedRectRotated(w/2, h/2, w*1.2, h*1.2, 0)
-
-					end
-
-
-				end
+				cRarete = TFJInv.CouleurRarete(self.Config["items"][sItem])
 
 			end
+			TFJInv.Case(w, h, cRarete)
 
 			-- _self:SetCursor("blank")
 		end
@@ -840,8 +862,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 	self.tSlotsPanel = tSlotsPanel
 
 	local vNavInvMode = vgui.Create("DPanel", self.vInventory)
-	vNavInvMode:SetSize(Solve.ScrW*0.335, Solve.ScrH*0.05)
-	vNavInvMode:SetPos(Solve.ScrW*0.116, Solve.ScrH*0.82)
+	vNavInvMode:SetSize(Solve.ScrW*0.2, Solve.ScrH*0.06)
+	vNavInvMode:SetPos(Solve.ScrW*0.27, Solve.ScrH*0.145)
 	vNavInvMode:SetPaintBackground(false)
 
 	local vObjectsButton = vgui.Create("DButton", vNavInvMode)
@@ -855,8 +877,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF10"])
 		surface.DrawRect(w - 1, h/2 - h*0.38/2, 1, h*0.38)
 
-		draw.SimpleText("OBJETS", Solve:Font(0.02, 4), w - w*0.07, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-		Souligne("OBJETS", Solve:Font(0.02, 4), w - w*0.07, h*0.52, TEXT_ALIGN_RIGHT, _self.iHoverLerp)
+		draw.SimpleText("OBJETS", "TFJInv.Mode", w - w*0.07, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+		Souligne("OBJETS", "TFJInv.Mode", w - w*0.07, h*0.52, TEXT_ALIGN_RIGHT, _self.iHoverLerp)
 
 	end
 	vObjectsButton.DoClick = function()
@@ -876,8 +898,8 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 		surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF10"])
 		surface.DrawRect(0, h/2 - h*0.38/2, 2, h*0.38)
 
-		draw.SimpleText("COSMÉTIQUES", Solve:Font(0.02, 4), w*0.07, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-		Souligne("COSMÉTIQUES", Solve:Font(0.02, 4), w*0.07, h*0.52, TEXT_ALIGN_LEFT, _self.iHoverLerp)
+		draw.SimpleText("COSMÉTIQUES", "TFJInv.Mode", w*0.07, h*0.52, ColorAlpha(Solve.Naruto.Constants["colors"]["FFFFFF"], 255*0.1 + (255*0.9)*_self.iHoverLerp), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+		Souligne("COSMÉTIQUES", "TFJInv.Mode", w*0.07, h*0.52, TEXT_ALIGN_LEFT, _self.iHoverLerp)
 
 	end
 	vComosButton.DoClick = function()
@@ -1068,6 +1090,19 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 
 		vEquipement.Paint = function(_self, w, h)
 
+			-- TFJ v2 : cadre de l'emplacement (avant : dessine dans le PNG de fond)
+			local vEquipe = _self.vItem
+			if IsValid(vEquipe) and vEquipe._sModel then vEquipe = vEquipe:GetParent() end
+			TFJInv.Case(w, h, IsValid(vEquipe) and TFJInv.CouleurRarete(self:GetItemData(vEquipe.sItemId)) or nil)
+			if not IsValid(vEquipe) then
+				local mIcone = TFJInv.IconeEmplacement(sEquipement)
+				if mIcone then
+					surface.SetDrawColor(255, 255, 255, 140)
+					surface.SetMaterial(mIcone)
+					surface.DrawTexturedRect(w * 0.25, h * 0.25, w * 0.5, h * 0.5)
+				end
+			end
+
 			// Dragging emplacement image
 
 			local tDraggedItems = dragndrop.GetDroppable("slot") or {}
@@ -1114,24 +1149,7 @@ function Solve.Naruto.Inventory:DrawInventory(sType, bReload, bHotReload, tOverI
 
 				end
 
-				local sItem = vItem.sItemId
-				local tItemData = self:GetItemData(sItem)
-
-				if tItemData then
-
-					local tRarity = self.Config["rarities"][tItemData.sRarity] or {}
-					local matRarity, iRarityW, iRarityH = Solve:GetMaterial(tRarity.sMat)
-
-					if matRarity then
-
-						surface.SetDrawColor(Solve.Naruto.Constants["colors"]["FFFFFF"])
-						surface.SetMaterial(matRarity)
-						surface.DrawTexturedRectRotated(w/2, h/2, w*1.4, h*1.4, 0)
-
-					end
-
-
-				end
+				-- TFJ v2 : la lueur de rarete est dessinee par TFJInv.Case plus haut
 
 			end
 
