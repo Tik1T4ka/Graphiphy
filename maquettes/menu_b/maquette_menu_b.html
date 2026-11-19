@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>TFJ Menu B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=block" rel="stylesheet">
+<style>
+/* Menu B (barre de jutsus) : disposition de la reference, DA du F4 TFJ.
+   Onglets = M_Fight.tConfig.tSkillsCategories ; 6 emplacements x 2 decks ; case "jutsus appris". */
+:root{--noir:#09090a;--bord:#2a2a2e;--gris:#8a8a92;--blanc:#f2f2f2;--rouge:#b01a1a;--rougeV:#d8262f;--rougeT:#e04848}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Poppins,sans-serif;color:var(--blanc);
+ background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)),radial-gradient(900px 600px at 30% 40%,#3a4a3a,#151a18 70%)}
+.t{font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+.fen{position:absolute;background:rgba(10,10,11,.96);border:1px solid #3a3a40}
+.fen:before{content:"";position:absolute;inset:4px;border:1px solid #1d1d21;pointer-events:none}
+.fen:after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--rougeV)}
+/* onglets */
+.onglets{left:330px;top:155px;width:1240px;height:82px;display:flex;align-items:center;justify-content:space-between;padding:0 30px}
+.onglets a{font-size:34px;color:var(--gris);padding:4px 16px 0}
+.onglets a.on{color:var(--blanc);background:var(--rougeV);clip-path:polygon(0 12%,6% 0,94% 6%,100% 30%,97% 100%,3% 92%)}
+/* fenetre principale */
+.main{left:330px;top:255px;width:1240px;height:665px}
+.titre{position:absolute;left:30px;top:22px;display:flex;align-items:center;gap:20px}
+.titre b{font-size:64px;font-weight:400;line-height:1}
+.titre label{display:flex;align-items:center;gap:10px;font-size:13px;color:#c4c4ca}
+.titre label i{width:20px;height:20px;border:1px solid #66666c;display:inline-block}
+.x{position:absolute;right:28px;top:22px;font-size:34px;color:var(--gris)}
+/* fiche de la technique */
+.fiche{position:absolute;left:30px;top:120px;width:330px;height:515px;background:#111113;border:1px solid #2a2a2e;display:flex;flex-direction:column;align-items:center;padding:28px 24px}
+.fiche .lib{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--rougeT);text-transform:uppercase;margin-top:22px}
+.rond{width:200px;height:200px;border-radius:50%;border:3px solid var(--blanc);box-shadow:0 0 0 6px #111113,0 0 0 7px #3a3a40,0 0 40px rgba(216,38,47,.35);
+ background:radial-gradient(circle at 50% 60%,#ff9a3a,#c4160c 45%,#3a0806 75%)}
+.fiche h2{font-size:46px;font-weight:400;line-height:1;margin-top:6px;text-align:center}
+.fiche p{font-size:14px;color:#c4c4ca;text-align:center;line-height:1.55;margin-top:14px}
+.niv{display:flex;gap:10px;margin-top:auto}
+.niv i{width:16px;height:16px;transform:rotate(45deg);border:1px solid #55555c}
+.niv i.ok{background:var(--rougeV);border-color:var(--rougeV)}
+.fiche small{font-size:12px;color:var(--gris);margin-top:10px}
+/* liste */
+.liste{position:absolute;left:400px;top:70px;width:790px;height:400px;overflow:hidden}
+.grp{margin-bottom:14px}
+.grp h3{display:flex;align-items:center;gap:12px;font-size:30px;font-weight:400;margin-bottom:8px}
+.grp h3 span{font-family:serif;font-size:24px}
+.grp h3 em{flex:1;height:1px;background:linear-gradient(90deg,var(--c),transparent);opacity:.6}
+.ronds{display:flex;gap:12px}
+.ronds i{width:62px;height:62px;border-radius:50%;background:radial-gradient(circle,#1c1c20,#0d0d0f 70%);border:2px solid #2e2e34}
+.ronds i.ok{border-color:var(--c);box-shadow:0 0 10px color-mix(in srgb,var(--c) 40%,transparent)}
+.ronds i.sel{outline:2px dashed #fff;outline-offset:4px}
+.defil{position:absolute;left:1205px;top:110px;width:5px;height:360px;background:#1d1d21}.defil i{display:block;height:80px;background:var(--rougeV)}
+.fondu{position:absolute;left:400px;top:420px;width:790px;height:50px;background:linear-gradient(transparent,rgba(10,10,11,.96))}
+/* deck */
+.deck{position:absolute;left:400px;top:500px;width:790px;height:135px;border-top:1px solid #2a2a2e;display:flex;align-items:center;gap:28px;padding-top:14px}
+.slot{position:relative;width:88px;height:88px;border-radius:50%;border:2px solid #4a4a52;background:#0d0d0f}
+.slot.ok{border-color:var(--blanc);background:radial-gradient(circle at 50% 60%,#ff9a3a,#c4160c 45%,#3a0806 75%)}
+.slot b{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:400;color:var(--gris)}
+.chg{margin-left:auto;text-align:center;line-height:1}
+.chg b{display:block;font-size:30px;font-weight:400}
+.chg small{display:block;font-size:13px;letter-spacing:3px;color:var(--gris);margin-top:2px}
+.chg span{display:inline-block;margin-top:8px;padding:6px 16px 2px;background:var(--rougeV);font-family:'Bebas Neue';font-size:26px;clip-path:polygon(0 12%,8% 0,92% 8%,100% 35%,96% 100%,4% 90%)}
+</style>
+</head>
+<body>
+<div class="fen onglets t"><a class="on">JUTSU</a><a>KEKKEI GENKAI</a><a>CLANS</a><a>TAIJUTSU / KENJUTSU</a><a>AUTRES</a><a>FAVORIS</a></div>
+
+<div class="fen main">
+  <div class="titre"><b class="t">JUTSU</b><label><i></i>Cacher les jutsus non appris</label></div>
+  <div class="x">×</div>
+
+  <div class="fiche">
+    <div class="rond"></div>
+    <div class="lib">Katon · Rang C · Ninjutsu</div>
+    <h2 class="t">BOULE DE FEU</h2>
+    <p>Le ninja malaxe son chakra et crache une grande boule de feu qui embrase tout sur son passage.</p>
+    <div class="niv"><i class="ok"></i><i class="ok"></i><i class="ok"></i><i></i><i></i></div>
+    <small>Niveau 3 / 5</small>
+  </div>
+
+  <div class="liste" id="liste"></div>
+  <div class="fondu"></div>
+  <div class="defil"><i></i></div>
+
+  <div class="deck t" id="deck"></div>
+</div>
+<script>
+// groupes = natures, avec les couleurs de colonne du F4
+const G=[['KATON','火','#ff7a1a',[1,1,1,0,0,0,0,0,0,0],1],['RAITON','雷','#f2b02e',[1,0,0,0,0,0,0,0,0,0]],['SUITON','水','#2f9be8',[0,0,0,0,0,0,0,0,0,0]],['FÛTON','風','#7be05a',[0,0,0,0,0,0,0,0,0,0]]];
+document.getElementById('liste').innerHTML=G.map(([n,k,c,r,s])=>`<div class="grp" style="--c:${c}"><h3 class="t" style="color:${c}">${n} <span>${k}</span><em></em></h3><div class="ronds">${r.map((o,i)=>`<i class="${o?'ok':''}${s&&i===0?' sel':''}" style="--c:${c}"></i>`).join('')}</div></div>`).join('');
+document.getElementById('deck').innerHTML=[1,2,3,4,5,6].map(i=>`<div class="slot${i===1?' ok':''}"><b>${i}</b></div>`).join('')+'<div class="chg"><b>CHANGER</b><small>DE DECK</small><span>DECK 1</span></div>';
+</script>
+</body>
+</html>
