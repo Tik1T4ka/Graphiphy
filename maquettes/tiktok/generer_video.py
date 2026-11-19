@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H, FPS = 1080, 1920, 30
-DUREE = 30.0
+DUREE = 28.0
 BPM = 120
 BEAT = 60 / BPM
 ICO = "/home/user/Graphiphy/maquettes/f4_icones/"
@@ -116,17 +116,15 @@ def losange(dr, x, y, r, col):
 
 # ------------------------------------------------------------------ contenu
 NOUVEAUTES = [
-    ("CLAN KIOKI", "Nouveau clan · 5 techniques", ["Ailes de l'Envol : vole au combat", "Prison du temps : fige tes ennemis"], KIO + "kioki_ailes_ascension.png"),
     ("DASH CHAKRA", "Combat plus nerveux", ["Esquive + saut de chakra", "Contrôle total dans les airs"], ICO + "shuriken.png"),
     ("SYSTÈME MÉDICAL", "Le RP médecin prend vie", ["Groupes sanguins par personnage", "Dons de sang et transfusions"], ICO + "sceau_medicale.png"),
     ("EXÉCUTIONS", "Mises à mort cinématiques", ["Décapitations au ralenti", "Animation du bourreau au sabre"], ICO + "sceau_kenjutsu.png"),
     ("COFFRES À CODE", "Protège ton butin", ["Inventaire en glisser-déposer", "Code secret à 4 chiffres"], ICO + "sceau_shinobi.png"),
     ("ARBRE DE TECHNIQUES", "Nouvelle interface F4", ["Style ninja, sceaux et parchemins", "Rinnegan désormais disponible"], ICO + "onglet_kekkei.png"),
-    ("XP x6", "Monte en rang à toute vitesse", ["Gain d'expérience multiplié par 6", "Grades VIP 1 et VIP 2 disponibles"], ICO + "sceau_kekkei.png"),
 ]
 T_INTRO, T_TITRE = 0.0, 3.0
 T_CARTES = 6.0
-D_CARTE = 2.5
+D_CARTE = 3.0
 T_FIN = T_CARTES + D_CARTE * len(NOUVEAUTES)   # 23.5
 COUPES = [T_TITRE, T_CARTES] + [T_CARTES + i * D_CARTE for i in range(1, len(NOUVEAUTES))] + [T_FIN]
 
@@ -178,7 +176,7 @@ def carte(base, i, t0, t):
     nom, sous, puces, _ = NOUVEAUTES[i]
     texte(cal, (x0 + 60, y0 + 70), "NOUVEAUTÉ", BOLD(34), GRIS, anchor="la")
     coller(cal, NUMS[i], x0 + cw - 190, y0 + 165)
-    cal.alpha_composite(TITRES[i], (int(x0 + 20), int(y0 + 105)))
+    cal.alpha_composite(TITRES[i], (int(x0 + 20), int(y0 + 245 - (TITRES[i].height - 40))))
     texte(cal, (x0 + 60, y0 + 270), sous, BOLD(40), ROUGE, anchor="la")
     # barre de progression
     dr.rectangle([x0 + 60, y0 + 345, x0 + cw - 60, y0 + 351], fill=(60, 60, 64, 255))
@@ -237,7 +235,7 @@ def frame(t):
         # points de progression
         dr = ImageDraw.Draw(base)
         for j in range(len(NOUVEAUTES)):
-            losange(dr, W / 2 + (j - 3) * 46, 1580, 10 if j == i else 7, (ROUGE if j <= i else (80, 80, 85)) + (255,))
+            losange(dr, W / 2 + (j - (len(NOUVEAUTES) - 1) / 2) * 46, 1580, 10 if j == i else 7, (ROUGE if j <= i else (80, 80, 85)) + (255,))
     else:
         k = (t - T_FIN) / (DUREE - T_FIN)
         entete(base, t)
@@ -254,68 +252,111 @@ def frame(t):
         bt.alpha_composite(C_LIEN, (450 - C_LIEN.width // 2, 175 - C_LIEN.height // 2))
         coller(base, bt, W / 2, 1060, back((k - 0.15) * 4) * p, a)
         texte(base, (W / 2, 1290), "Lien aussi en bio", BOLD(44), BLANC, alpha=int(255 * ease((k - 0.3) * 5)))
-        texte(base, (W / 2, 1360), "XP x6 · Clan Kioki · VIP", BOLD(40), ROUGE, alpha=int(255 * ease((k - 0.4) * 5)))
+        texte(base, (W / 2, 1360), "Dash · Médical · Coffres · Exécutions", BOLD(40), ROUGE, alpha=int(255 * ease((k - 0.4) * 5)))
         coller(base, C_GMOD, W / 2, 1450, 1, ease((k - 0.5) * 5))
     # vignette
     return base.convert("RGB")
 
-# ------------------------------------------------------------------ son : rythme 120 BPM + impacts aux transitions
+# ------------------------------------------------------------------ son : ambiance japonaise (taiko, shakuhachi, koto, sabre)
 def audio(path):
     sr = 44100
     n = int(DUREE * sr)
     s = np.zeros(n, np.float32)
-    rng = np.random.default_rng(1)
-    def ajout(t, sig):
+    rng = np.random.default_rng(7)
+    def ajout(t, sig, g=1.0):
         i = int(t * sr)
+        if i >= n or i < 0: return
         j = min(n, i + len(sig))
-        if i < n: s[i:j] += sig[: j - i]
-    tt = np.arange(int(0.45 * sr)) / sr
-    kick = np.sin(2 * np.pi * (45 + 110 * np.exp(-tt * 28)) * tt) * np.exp(-tt * 7) * 0.9
-    th = np.arange(int(0.05 * sr)) / sr
-    hat = rng.normal(0, 1, len(th)) * np.exp(-th * 90) * 0.12
-    hat = np.diff(np.concatenate([[0], hat])).astype(np.float32)
-    tc = np.arange(int(0.25 * sr)) / sr
-    clap = rng.normal(0, 1, len(tc)) * np.exp(-tc * 22) * 0.25
-    tk = np.arange(int(1.2 * sr)) / sr
-    taiko = (np.sin(2 * np.pi * (70 + 40 * np.exp(-tk * 10)) * tk) * np.exp(-tk * 3.5) * 1.1
-             + rng.normal(0, 1, len(tk)) * np.exp(-tk * 30) * 0.3)
-    b = 0.0
-    while b < DUREE - 0.2:
-        beat_i = int(round(b / BEAT))
-        if b >= T_TITRE - 0.01 and b < DUREE - 1.5:
-            ajout(b, kick)
-            if beat_i % 2 == 1: ajout(b, clap)
-        ajout(b + BEAT / 2, hat)
-        b += BEAT
-    for c in [0.0] + COUPES:
-        ajout(c, taiko)
-        tw = np.arange(int(0.35 * sr)) / sr
-        wh = rng.normal(0, 1, len(tw)) * np.sin(np.pi * tw / tw[-1]) * 0.18
-        ajout(max(0, c - 0.3), wh)
-    # nappe grave (re mineur) + petite melodie de flute pentatonique
-    t_all = np.arange(n) / sr
-    for f in (73.42, 110.0, 146.83):
-        s += (np.sin(2 * np.pi * f * t_all) * 0.05 * (0.6 + 0.4 * np.sin(2 * np.pi * t_all / 8))).astype(np.float32)
-    notes = [587.33, 698.46, 783.99, 880.0, 1046.5, 880.0, 783.99, 698.46]
-    tn = np.arange(int(0.45 * sr)) / sr
-    env = np.minimum(1, tn * 30) * np.exp(-tn * 4)
-    for k in range(int(DUREE / BEAT)):
-        if k % 2 == 0 and T_TITRE <= k * BEAT < DUREE - 1:
-            f = notes[(k // 2) % len(notes)]
-            fl = (np.sin(2 * np.pi * f * tn) + 0.3 * np.sin(4 * np.pi * f * tn)) * env * 0.08
-            ajout(k * BEAT, fl.astype(np.float32))
-    # fondu de fin
-    fo = int(1.5 * sr)
+        s[i:j] += (sig[: j - i] * g).astype(np.float32)
+    def env(d, a=0.005, r=4.0):
+        t = np.arange(int(d * sr)) / sr
+        return t, np.minimum(1, t / a) * np.exp(-t * r)
+    # taiko grave (don), taiko aigu (ka = bord du tambour)
+    t, e = env(1.0, 0.002, 4.5)
+    don = (np.sin(2 * np.pi * (62 + 45 * np.exp(-t * 14)) * t) * 1.0 + np.sin(2 * np.pi * 124 * t) * 0.15 * np.exp(-t * 9)) * e \
+        + rng.normal(0, 1, len(t)) * np.exp(-t * 45) * 0.25
+    t, e = env(0.12, 0.001, 38)
+    ka = (np.sin(2 * np.pi * 820 * t) * 0.5 + rng.normal(0, 1, len(t)) * 0.4) * e * 0.35
+    t, e = env(1.6, 0.002, 2.2)
+    odaiko = np.sin(2 * np.pi * (44 + 30 * np.exp(-t * 10)) * t) * e * 1.3 + rng.normal(0, 1, len(t)) * np.exp(-t * 25) * 0.35
+    # koto : corde pincee (Karplus-Strong)
+    def koto(f, d=1.6, g=0.22):
+        N = int(sr / f); buf = rng.uniform(-1, 1, N).astype(np.float32)
+        out = np.zeros(int(d * sr), np.float32)
+        for k in range(len(out)):
+            out[k] = buf[k % N]
+            buf[k % N] = 0.996 * 0.5 * (buf[k % N] + buf[(k + 1) % N])
+        return out * g
+    # shakuhachi : souffle + vibrato + attaque bruitee
+    def shaku(f, d, g=0.13):
+        t = np.arange(int(d * sr)) / sr
+        vib = 1 + 0.012 * np.sin(2 * np.pi * 5.2 * t) * np.minimum(1, t / 0.5)
+        ph = 2 * np.pi * np.cumsum(f * vib) / sr
+        en = np.minimum(1, t / 0.12) * np.minimum(1, (d - t) / 0.25)
+        souffle = rng.normal(0, 1, len(t)) * 0.35
+        souffle = np.convolve(souffle, np.ones(6) / 6, mode="same")
+        sig = (np.sin(ph) + 0.25 * np.sin(2 * ph) + 0.08 * np.sin(3 * ph)) * en + souffle * en * 0.5
+        att = rng.normal(0, 1, len(t)) * np.exp(-t * 25) * 0.6
+        return (sig + att) * g
+    # gamme japonaise "in" sur re : re mib sol la sib
+    IN = [293.66, 311.13, 392.0, 440.0, 466.16, 587.33, 622.25, 783.99]
+    # bruit de sabre (shing metallique) pour les transitions
+    def sabre():
+        t = np.arange(int(1.1 * sr)) / sr
+        sig = sum(np.sin(2 * np.pi * f * t) * np.exp(-t * dcy) for f, dcy in [(3150, 4.5), (4720, 6), (6230, 8), (2380, 5)])
+        sw = rng.normal(0, 1, len(t)) * np.exp(-((t - 0.05) / 0.06) ** 2) * 0.5
+        return (sig * 0.07 + sw * 0.25) * np.minimum(1, t / 0.01)
+    SAB = sabre()
+    # rythme : don . ka don | don ka ka . (sur 2 temps de 0,5 s)
+    pas = BEAT / 2
+    motif = ["D", "", "K", "D", "D", "K", "K", ""]
+    k = 0; tt = T_TITRE
+    while tt < DUREE - 2.0:
+        m = motif[k % len(motif)]
+        if m == "D": ajout(tt, don, 0.8)
+        elif m == "K": ajout(tt, ka)
+        k += 1; tt += pas
+    # intro : 3 coups d'odaiko espaces + shakuhachi seul
+    for c in (0.0, 1.0, 2.0): ajout(c, odaiko, 0.9)
+    ajout(0.15, shaku(IN[0] * 2, 2.8, 0.16))
+    for c in COUPES:
+        ajout(c, odaiko, 0.8)
+        ajout(c - 0.05, SAB)
+    # koto : arpege toutes les mesures
+    arp = [0, 2, 3, 5, 3, 2]
+    b = T_TITRE; m = 0
+    while b < DUREE - 2.5:
+        racine = [0, 0, 2, 1][m % 4]
+        for q, idx in enumerate(arp):
+            ajout(b + q * pas / 1.5, koto(IN[(idx + racine) % len(IN)] / 2))
+        b += BEAT * 4; m += 1
+    # melodie de shakuhachi par phrases
+    phrase = [(5, 1.0), (6, 0.5), (5, 0.5), (3, 1.5), (4, 0.5), (3, 1.0), (2, 1.0), (0, 2.0)]
+    b = T_TITRE + 1.0
+    while b < DUREE - 3:
+        for idx, dd in phrase:
+            if b + dd > DUREE - 2: break
+            ajout(b, shaku(IN[idx], dd * 1.05))
+            b += dd
+        b += 1.0
+    # bourdon grave
+    ta = np.arange(n) / sr
+    s += (np.sin(2 * np.pi * 73.42 * ta) * 0.05 + np.sin(2 * np.pi * 110 * ta) * 0.025).astype(np.float32)
+    # final : gros coup + gong
+    ajout(DUREE - 2.2, odaiko, 1.0)
+    tg = np.arange(int(2.0 * sr)) / sr
+    gong = sum(np.sin(2 * np.pi * f * tg) * np.exp(-tg * 1.4) for f in (196, 293.66, 415.3)) * 0.07
+    ajout(DUREE - 2.2, gong)
+    fo = int(1.2 * sr)
     s[-fo:] *= np.linspace(1, 0, fo)
-    s = np.tanh(s * 1.4) * 0.85
-    pcm = (s * 32767).astype(np.int16)
+    s = np.tanh(s * 1.3) * 0.88
     with wave.open(path, "wb") as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(pcm.tobytes())
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((s * 32767).astype(np.int16).tobytes())
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "apercu":
-        for t in [5.5, 12.0, 17.0, 20.0, 22.0, 29.0]:
+        for t in [1.5, 7.5, 13.0, 17.0, 20.0, 26.0]:
             frame(t).resize((540, 960)).save(OUT + "apercu_%04.1f.png" % t)
         sys.exit()
     audio(OUT + "son.wav")
