@@ -379,49 +379,62 @@ def audio(path):
         sw = rng.normal(0, 1, len(t)) * np.exp(-((t - 0.05) / 0.06) ** 2) * 0.5
         return (sig * 0.07 + sw * 0.25) * np.minimum(1, t / 0.01)
     SAB = sabre()
-    # rythme : don . ka don | don ka ka . (sur 2 temps de 0,5 s)
-    pas = BEAT / 2
-    motif = ["D", "K", "K", "D", "D", "K", "D", "K"]
-    k = 0; tt = T_TITRE
-    while tt < DUREE - 2.0:
-        m = motif[k % len(motif)]
-        if m == "D": ajout(tt, don, 0.8)
-        elif m == "K": ajout(tt, ka)
-        k += 1; tt += pas
-    # intro : 3 coups d'odaiko espaces + shakuhachi seul
-    for c in HOOK + [1.5]: ajout(c, odaiko, 0.9)
-    ajout(0.15, shaku(IN[0] * 2, 2.8, 0.16))
+    # --- version calme : nappe + koto lent + shakuhachi, tambours discrets seulement aux transitions
+    for c in HOOK: ajout(c, odaiko, 0.45)
+    ajout(0.1, shaku(IN[0] * 2, 3.5, 0.15))
     for c in COUPES:
-        ajout(c, odaiko, 0.8)
-        ajout(c - 0.05, SAB)
-    # koto : arpege toutes les mesures
-    arp = [0, 2, 3, 5, 3, 2]
-    b = T_TITRE; m = 0
+        ajout(c, odaiko, 0.32)
+        ajout(c - 0.05, SAB, 0.35)
+    # pulsation tres douce : un don feutre toutes les 2 temps
+    b = T_TITRE
     while b < DUREE - 2.5:
-        racine = [0, 0, 2, 1][m % 4]
-        for q, idx in enumerate(arp):
-            ajout(b + q * pas / 1.5, koto(IN[(idx + racine) % len(IN)] / 2))
-        b += BEAT * 4; m += 1
-    # melodie de shakuhachi par phrases
-    phrase = [(5, 1.0), (6, 0.5), (5, 0.5), (3, 1.5), (4, 0.5), (3, 1.0), (2, 1.0), (0, 2.0)]
-    b = T_TITRE + 1.0
+        ajout(b, don, 0.22)
+        b += BEAT * 2
+    # nappe (accords de la gamme in) avec attaque lente
+    ta = np.arange(n) / sr
+    accords = [(146.83, 220.0, 293.66), (155.56, 233.08, 311.13), (130.81, 196.0, 293.66), (146.83, 220.0, 293.66)]
+    lg = BEAT * 8
+    for k in range(int(DUREE / lg) + 1):
+        t0 = k * lg
+        tt = np.arange(int(lg * 1.3 * sr)) / sr
+        en = np.minimum(1, tt / 1.2) * np.minimum(1, np.maximum(0, (lg * 1.3 - tt)) / 1.0)
+        sig = sum(np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(2 * np.pi * f * 2.003 * tt) for f in accords[k % 4]) * en * 0.035
+        ajout(t0, sig.astype(np.float32))
+    # koto : arpege lent, une note par temps
+    arp = [0, 2, 3, 5, 3, 2, 0, 3]
+    b = T_TITRE; q = 0
+    while b < DUREE - 2.5:
+        ajout(b, koto(IN[arp[q % len(arp)]] / 2, 2.2, 0.16))
+        b += BEAT; q += 1
+    # melodie de shakuhachi, phrases longues et respirees
+    phrase = [(5, 2.0), (6, 1.0), (5, 1.0), (3, 2.5), (4, 1.0), (2, 1.5), (0, 3.0)]
+    b = T_TITRE + 0.5
     while b < DUREE - 3:
         for idx, dd in phrase:
-            if b + dd > DUREE - 2: break
-            ajout(b, shaku(IN[idx], dd * 1.05))
+            if b + dd > DUREE - 1.5: break
+            ajout(b, shaku(IN[idx], dd * 1.1, 0.12))
             b += dd
-        b += 1.0
-    # bourdon grave
-    ta = np.arange(n) / sr
-    s += (np.sin(2 * np.pi * 73.42 * ta) * 0.05 + np.sin(2 * np.pi * 110 * ta) * 0.025).astype(np.float32)
-    # final : gros coup + gong
-    ajout(DUREE - 2.2, odaiko, 1.0)
-    tg = np.arange(int(2.0 * sr)) / sr
-    gong = sum(np.sin(2 * np.pi * f * tg) * np.exp(-tg * 1.4) for f in (196, 293.66, 415.3)) * 0.07
-    ajout(DUREE - 2.2, gong)
+        b += 1.5
+    # bourdon grave tres leger
+    s += (np.sin(2 * np.pi * 73.42 * ta) * 0.03).astype(np.float32)
+    # final : gong doux
+    tg = np.arange(int(3.0 * sr)) / sr
+    gong = sum(np.sin(2 * np.pi * f * tg) * np.exp(-tg * 0.9) for f in (196, 293.66, 415.3)) * 0.06
+    ajout(DUREE - 2.6, gong)
+    ajout(DUREE - 2.6, odaiko, 0.4)
+    # reverberation (salle de temple) : convolution avec une queue de bruit qui decroit
+    tr = np.arange(int(2.2 * sr)) / sr
+    ir = rng.normal(0, 1, len(tr)) * np.exp(-tr * 2.6)
+    ir = np.convolve(ir, np.ones(30) / 30, mode="same")
+    ir /= np.sqrt((ir ** 2).sum())
+    L = len(s) + len(ir)
+    nfft = 1 << (L - 1).bit_length()
+    wet = np.fft.irfft(np.fft.rfft(s, nfft) * np.fft.rfft(ir, nfft), nfft)[: len(s)]
+    s = (s * 0.75 + wet.astype(np.float32) * 0.35).astype(np.float32)
     fo = int(1.2 * sr)
     s[-fo:] *= np.linspace(1, 0, fo)
-    s = np.tanh(s * 1.3) * 0.88
+    s = s / max(1e-6, np.abs(s).max()) * 0.85
+    s = np.tanh(s * 1.1)
     with wave.open(path, "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((s * 32767).astype(np.int16).tobytes())
 
