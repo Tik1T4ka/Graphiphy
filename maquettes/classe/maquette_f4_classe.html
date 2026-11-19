@@ -25,8 +25,9 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 .nav .logo{position:relative;width:190px;height:130px;margin:0 6px}
 /* colonnes */
 .col{position:absolute;top:175px;width:330px;height:820px}
-.col:before{content:"";position:absolute;inset:0 20px 80px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(176,26,26,.12) 70%,transparent);border:1px solid #1d1d21}
-.col.on:before{border-color:rgba(216,38,47,.6);background:linear-gradient(180deg,rgba(216,38,47,.10),rgba(216,38,47,.22) 70%,transparent)}
+.col:before{content:"";position:absolute;inset:0 20px 80px;border:1px solid color-mix(in srgb,var(--c1) 22%,#1d1d21);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--c1) 6%,transparent),color-mix(in srgb,var(--c1) 20%,transparent) 45%,color-mix(in srgb,var(--c2) 38%,transparent) 85%,transparent)}
+.col.on:before{border-color:color-mix(in srgb,var(--c1) 75%,transparent);box-shadow:0 0 24px color-mix(in srgb,var(--c1) 25%,transparent)}
 .palier{position:absolute;left:0;right:0;display:flex;justify-content:center}
 /* icone de la technique : reprise telle quelle du skill tree existant */
 .palier .gem{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,#2a2a2e,#151517 70%);border:1px solid #3a3a40}
@@ -55,7 +56,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 
 
 <!-- 4 colonnes = 4 classes du skill tree, 4 techniques chacune (icones existantes) -->
-<div class="col" style="left:370px">
+<div class="col" style="left:370px;--c1:#5fbf4a;--c2:#1f6b2e">
   <div class="palier" style="top:45px"><span class="gem"></span></div>
   <div class="palier" style="top:150px"><span class="gem"></span></div>
   <div class="palier" style="top:255px"><span class="gem"></span></div>
@@ -64,7 +65,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <div class="nom"><div class="t">COMBATTANT</div></div>
 </div>
 
-<div class="col on" style="left:725px">
+<div class="col on" style="left:725px;--c1:#9a9ab8;--c2:#3a3a58">
   <div class="palier" style="top:45px"><span class="gem"></span></div>
   <div class="palier" style="top:150px"><span class="gem"></span></div>
   <div class="palier" style="top:255px"><span class="gem"></span></div>
@@ -73,7 +74,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <div class="nom"><div class="t">MIRAGE</div></div>
 </div>
 
-<div class="col" style="left:1080px">
+<div class="col" style="left:1080px;--c1:#e8c860;--c2:#4f8a3a">
   <div class="palier" style="top:45px"><span class="gem"></span></div>
   <div class="palier" style="top:150px"><span class="gem"></span></div>
   <div class="palier" style="top:255px"><span class="gem"></span></div>
@@ -82,7 +83,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <div class="nom"><div class="t">MÉDECIN</div></div>
 </div>
 
-<div class="col" style="left:1435px">
+<div class="col" style="left:1435px;--c1:#d23a2a;--c2:#2a3428">
   <div class="palier" style="top:45px"><span class="gem"></span></div>
   <div class="palier" style="top:150px"><span class="gem"></span></div>
   <div class="palier" style="top:255px"><span class="gem"></span></div>

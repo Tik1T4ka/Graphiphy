@@ -1,7 +1,7 @@
 # Styles des menus TFJ
 
 Couleurs communes : noir, rouge (176, 26, 26), blanc.
-Menu F4 (arbre de compétences) : l'onglet Classe est en cours de refonte (maquette `classe/maquette_f4_classe.html`), on modifie le skill tree existant.
+Menu F4 (arbre de compétences) : l'onglet Classe est en cours de refonte (maquette `classe/maquette_f4_classe.html`), on modifie le skill tree existant. Meme quota sur chaque onglet : 4 techniques par colonne. Chaque colonne a un degrade tire des couleurs de son illustration.
 
 ## Style A : « lecteur de musique » (`references/style_A_lecteur_musique.png`)
 Utilisé pour : coffre, registre médical.
