@@ -1331,6 +1331,180 @@ local function TFJ_RangTechnique(tSkill)
 	elseif iPower == 8 then return 4 elseif iPower <= 11 then return 5 end
 	return 6
 end
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- TFJ v2 : une colonne par arbre (degrade de couleur + illustration + nom),
+-- onglets en capitales avec le logo au centre, points de competence en bas a gauche.
+-- Maquettes : maquettes/classe/maquette_f4_*.html (depot Graphiphy).
+-- Images attendues dans materials/tfj_skilltree/ (f4_<arbre>.png, f4_logo.png, f4_mascotte.png) :
+-- si une image manque, la colonne s'affiche sans elle.
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+local TFJ2 = {}
+local TFJ2_ROUGE_SOMBRE = Color(90, 15, 18)
+-- ordre d'affichage des colonnes (celui des maquettes), sinon ordre de la config
+local tTFJ2Ordre = {
+	katon = 1, futon = 2, raiton = 3, doton = 4, suiton = 5,
+	taijutsu_man = 1, taijutsu = 2, kenjutsu = 3, kenjutsu_expert = 4,
+	guerrier = 1, mirage = 2, medicale = 3, robustesse = 4,
+}
+local tTFJ2Noms = {
+	katon = "KATON", futon = "FÛTON", raiton = "RAITON", doton = "DOTON", suiton = "SUITON",
+	taijutsu_man = "TAIJUTSU EXPERT", taijutsu = "TAIJUTSU", kenjutsu = "KENJUTSU", kenjutsu_expert = "KENJUTSU EXPERT",
+	guerrier = "COMBATTANT", mirage = "MIRAGE", medicale = "MÉDECIN", robustesse = "ROBUSTE",
+}
+-- degrade de chaque colonne (haut, bas), tire des couleurs de son illustration
+local tTFJ2Couleurs = {
+	katon = { Color(255, 122, 26), Color(196, 22, 12) }, futon = { Color(123, 224, 90), Color(31, 168, 154) },
+	raiton = { Color(242, 176, 46), Color(47, 143, 224) }, doton = { Color(192, 138, 74), Color(26, 160, 168) },
+	suiton = { Color(47, 155, 232), Color(27, 63, 181) },
+	taijutsu_man = { Color(200, 240, 64), Color(31, 143, 58) }, taijutsu = { Color(124, 200, 80), Color(224, 150, 46) },
+	kenjutsu = { Color(111, 143, 208), Color(28, 40, 72) }, kenjutsu_expert = { Color(214, 200, 138), Color(47, 106, 96) },
+	guerrier = { Color(95, 191, 74), Color(31, 107, 46) }, mirage = { Color(154, 154, 184), Color(58, 58, 88) },
+	medicale = { Color(232, 200, 96), Color(79, 138, 58) }, robustesse = { Color(210, 58, 42), Color(42, 52, 40) },
+}
+
+local iTFJ2PoliceH
+function TFJ2.Polices()
+	if iTFJ2PoliceH == ScrH() then return end
+	iTFJ2PoliceH = ScrH()
+	local VH = ScrH() / 100
+	-- Bebas Neue : resource/fonts/bebasneue-regular.ttf (envoyee par sv_tfj_polices.lua)
+	surface.CreateFont("TFJF4.Onglet", { font = "Bebas Neue", size = math.floor(VH * 3.2), weight = 400, extended = true })
+	surface.CreateFont("TFJF4.Nom", { font = "Bebas Neue", size = math.floor(VH * 5.9), weight = 400, extended = true })
+	surface.CreateFont("TFJF4.NomLong", { font = "Bebas Neue", size = math.floor(VH * 4.3), weight = 400, extended = true })
+	surface.CreateFont("TFJF4.Points", { font = "Bebas Neue", size = math.floor(VH * 8.9), weight = 400, extended = true })
+	surface.CreateFont("TFJF4.Label", { font = "Bebas Neue", size = math.floor(VH * 2.8), weight = 400, extended = true })
+end
+
+-- degrade vertical fait de bandes (independant des textures gui/gradient_*)
+function TFJ2.Degrade(x, y, w, h, c1, a1, c2, a2)
+	local n = 32
+	local hb = h / n
+	for i = 0, n - 1 do
+		local f = i / (n - 1)
+		surface.SetDrawColor(Lerp(f, c1.r, c2.r), Lerp(f, c1.g, c2.g), Lerp(f, c1.b, c2.b), Lerp(f, a1, a2))
+		surface.DrawRect(x, math.floor(y + i * hb), w, math.ceil(hb) + 1)
+	end
+end
+
+-- couleur moyenne (ponderee par la saturation) des icones d'un arbre : sert aux clans et Kekkei Genkai
+local tTFJ2CouleursIcones = {}
+function TFJ2.CouleurIcones(sTree, tSkills)
+	if tTFJ2CouleursIcones[sTree] ~= nil then return tTFJ2CouleursIcones[sTree] end
+	local r, g, b, p = 0, 0, 0, 0
+	for _, tS in ipairs(tSkills or {}) do
+		local tFull = M_Fight.tIDs[tS.sID]
+		local m = tFull and tFull.mImage
+		if m and not m:IsError() and m.GetColor then
+			local iW, iH = m:Width(), m:Height()
+			for ix = 1, 9 do
+				for iy = 1, 9 do
+					local ok, c = pcall(m.GetColor, m, math.floor(iW * ix / 10), math.floor(iH * iy / 10))
+					if ok and c and (c.a or 255) > 128 then
+						local h, s, v = ColorToHSV(c)
+						local f = s * s * v
+						r, g, b, p = r + c.r * f, g + c.g * f, b + c.b * f, p + f
+					end
+				end
+			end
+		end
+	end
+	local tRes = false
+	if p > 0.5 then
+		local h, s = ColorToHSV(Color(r / p, g / p, b / p))
+		-- shortcut: une moyenne trop terne (icones grises) retombe sur le rouge TFJ ; ajouter une couleur a la main si besoin
+		if s > 0.2 then tRes = { HSVToColor(h, math.min(1, s * 1.2), 0.9), HSVToColor(h, math.min(1, s * 1.1), 0.35) } end
+	end
+	tTFJ2CouleursIcones[sTree] = tRes
+	return tRes
+end
+
+-- colonnes a afficher pour une categorie (memes filtres que le jeu : KG et clan du joueur uniquement)
+function TFJ2.Colonnes(tCategory, pLocal, sPlayerClan, tClan, VH)
+	local tCols = {}
+	for iConfig, tConfigTree in ipairs(tCategory.tTrees or {}) do
+		if tCategory.bKekkei and tConfigTree.sID ~= pLocal:GetNetworkVar("sKekkei", "") then continue end
+		if tCategory.bClan and tConfigTree.sID ~= sPlayerClan then continue end
+		local tTree = M_Fight.tConfig.tBranch[tConfigTree.sID]
+		if not tTree then continue end
+		local sID = tConfigTree.sID
+		local tCouleurs = tTFJ2Couleurs[sID] or TFJ2.CouleurIcones(sID, tTree.tSkills) or { TFJ_ROUGE_CLAIR, TFJ2_ROUGE_SOMBRE }
+		local sNom = tTFJ2Noms[sID]
+		if not sNom then
+			if tCategory.bClan then
+				sNom = "CLAN " .. string.upper((tClan and tClan.sName) or sID)
+			else
+				sNom = string.upper(sID)
+			end
+		end
+		table.insert(tCols, { sID = sID, tConfigTree = tConfigTree, tTree = tTree, iOrdre = tTFJ2Ordre[sID] or (100 + iConfig),
+			c1 = tCouleurs[1], c2 = tCouleurs[2], sNom = sNom, matIllu = TFJ_Mat("f4_" .. sID .. ".png") })
+	end
+	table.sort(tCols, function(a, b) return a.iOrdre < b.iOrdre end)
+	-- largeur et pas des maquettes (1080p : 290 px / 355 px a 4 colonnes, 270 px / 305 px a 5)
+	local n = #tCols
+	local nW = (n >= 5) and VH * 25 or VH * 26.9
+	local nPas = (n >= 5) and VH * 28.2 or VH * 32.9
+	local nCentre = ScrW() / 2 + VH * ((n >= 5) and 14 or 10)
+	for i, c in ipairs(tCols) do
+		c.x = math.floor(nCentre - (n * nPas - (nPas - nW)) / 2 + (i - 1) * nPas)
+		c.y, c.w, c.h = math.floor(VH * 16.2), math.floor(nW), math.floor(VH * 68.4)
+		c.cx = c.x + c.w / 2
+	end
+	return tCols
+end
+
+function TFJ2.Fond(w, h, VH)
+	surface.SetDrawColor(9, 9, 10, 235)
+	surface.DrawRect(0, 0, w, h)
+	TFJ2.Degrade(0, h * 0.55, w, h * 0.45, TFJ2_ROUGE_SOMBRE, 0, Color(120, 18, 18), 110)
+end
+
+function TFJ2.Colonne(c, bActive, VH)
+	TFJ2.Degrade(c.x, c.y, c.w, c.h * 0.45, c.c1, 12, c.c1, 45)
+	TFJ2.Degrade(c.x, c.y + c.h * 0.45, c.w, c.h * 0.55, c.c1, 45, c.c2, 95)
+	surface.SetDrawColor(c.c1.r, c.c1.g, c.c1.b, bActive and 200 or 55)
+	surface.DrawOutlinedRect(c.x, c.y, c.w, c.h, 1)
+	if c.matIllu then
+		-- illustration en bas de la colonne, proportions conservees
+		local iW, iH = c.matIllu:Width(), c.matIllu:Height()
+		local bW, bH = c.w + VH * 3, VH * 28.7
+		local f = math.min(bW / iW, bH / iH)
+		local dW, dH = iW * f, iH * f
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.SetMaterial(c.matIllu)
+		surface.DrawTexturedRect(c.cx - dW / 2, c.y + c.h - dH, dW, dH)
+	end
+end
+
+function TFJ2.Nom(c, VH)
+	local sFont = (#c.sNom > 10) and "TFJF4.NomLong" or "TFJF4.Nom"
+	surface.SetFont(sFont)
+	local tW = surface.GetTextSize(c.sNom)
+	local y = c.y + c.h + VH * 3.4
+	-- trace de pinceau : bande rouge sombre qui s'efface sur les cotes
+	local bW, bH = tW + VH * 6, VH * 5.2
+	for i = 0, 23 do
+		local f = 1 - math.abs(i / 23 * 2 - 1)
+		surface.SetDrawColor(TFJ2_ROUGE_SOMBRE.r, TFJ2_ROUGE_SOMBRE.g, TFJ2_ROUGE_SOMBRE.b, 230 * math.min(1, f * 2.2))
+		surface.DrawRect(c.cx - bW / 2 + i * bW / 24, y - bH / 2 + VH * 0.4, bW / 24 + 1, bH)
+	end
+	draw.SimpleText(c.sNom, sFont, c.cx, y, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+end
+
+function TFJ2.BasGauche(w, h, VH, iPoints)
+	local matMascotte = TFJ_Mat("f4_mascotte.png")
+	if matMascotte then
+		local iW, iH = matMascotte:Width(), matMascotte:Height()
+		local f = math.min(VH * 31 / iW, VH * 30 / iH)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.SetMaterial(matMascotte)
+		surface.DrawTexturedRect(VH * 15.5 - iW * f / 2, VH * 89.5 - iH * f, iW * f, iH * f)
+	end
+	local iNW = draw.SimpleText(iPoints, "TFJF4.Points", VH * 3.7, h - VH * 3, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+	draw.SimpleText("POINTS DE", "TFJF4.Label", VH * 4.7 + iNW, h - VH * 5.9, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+	draw.SimpleText("COMPÉTENCE", "TFJF4.Label", VH * 4.7 + iNW, h - VH * 3.2, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+end
 --[[local tButtons = {
 	{
 		sID = "jutsus",
@@ -1375,11 +1549,14 @@ local function Header(vFrame, nActualID)
 	end
 
 	Solve.Naruto.FocusedFrame = vFrame
+	TFJ2.Polices()
 	local vButtons = vgui.Create("DPanel", vFrame)
-	vButtons:SetSize(1, VH * 5)
+	vButtons:SetSize(1, VH * 12)
 	vButtons:CenterHorizontal()
-	vButtons:SetY(VH * 3.5)
+	vButtons:SetY(VH * 2)
 	vButtons:SetPaintBackground(false)
+	local nEcart = VH * 3.5
+	local matLogo = TFJ_Mat("f4_logo.png")
 	local tCats = {}
 	for i, tCategory in ipairs(M_Fight.tConfig.tCategories) do
 		if isfunction(tCategory.fnCheck) then if not tCategory.fnCheck(pLocal) then continue end end
@@ -1392,24 +1569,22 @@ local function Header(vFrame, nActualID)
 		if not tCategory then continue end
 		local tSkillCat = M_Fight.tConfig.tSkillsCategories[nID]
 		if not tSkillCat then continue end
-		local matIcon = tSkillCat.mIcon
-		surface.SetFont("NRP::Poppins::2D::3::500")
-		local nW = surface.GetTextSize(tCategory.sName)
-		nW = nW + (VH * 3.5)
+		-- TFJ v2 : onglet en capitales, sans icone, souligne en rouge quand il est actif
+		local sNomOnglet = string.upper(tCategory.sName)
+		surface.SetFont("TFJF4.Onglet")
+		local nW, nTH = surface.GetTextSize(sNomOnglet)
 		local pButton = vgui.Create("DButton", vButtons)
 		pButton:SetWide(nW)
 		pButton:Dock(LEFT)
-		if i ~= #tCats then pButton:DockMargin(0, 0, VH * 1.5, 0) end
+		if i ~= #tCats then pButton:DockMargin(0, 0, nEcart, 0) end
 		pButton:SetText("")
 		pButton.Paint = function(self, w, h)
-			surface.SetDrawColor(255, 255, 255, 255)
-			surface.SetMaterial(matIcon)
-			surface.DrawTexturedRect(0, h / 2 - ((h * 0.6) / 2), h * 0.6, h * 0.6, 0)
 			self.iHoverLerp = Lerp(FrameTime() * 5, self.iHoverLerp or 0, (self:IsHovered() or nActualID == nID) and 1 or 0)
-			draw.SimpleText(tCategory.sName, "NRP::Poppins::2D::3::500", VH * 3.5, h / 2, ColorAlpha(cGrey, 50 + 205 * self.iHoverLerp), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			local iC = 138 + 117 * self.iHoverLerp
+			draw.SimpleText(sNomOnglet, "TFJF4.Onglet", w / 2, h / 2, Color(iC, iC, iC + 8 * (1 - self.iHoverLerp)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			if nActualID == nID then
 				surface.SetDrawColor(TFJ_ROUGE)
-				surface.DrawRect(VH * 3.5, h - 3, w - VH * 3.5, 2)
+				surface.DrawRect(0, h / 2 + nTH / 2 + VH * 0.4, w, 2)
 			end
 			-- if i != #tCats then
 			--     surface.SetDrawColor(255, 255, 255, 100)
@@ -1424,12 +1599,26 @@ local function Header(vFrame, nActualID)
 			surface.PlaySound("solve_naruto_base/ui/bruitage_switch_jutsu.wav")
 		end
 
-		iCumulW = iCumulW + nW * 1.3
+		iCumulW = iCumulW + nW + ((i ~= #tCats) and nEcart or 0)
+		-- logo du serveur entre le 2e et le 3e onglet
+		if i == 2 and #tCats > 2 and matLogo then
+			local nLogoW = VH * 12 * matLogo:Width() / math.max(1, matLogo:Height())
+			local vLogo = vgui.Create("DPanel", vButtons)
+			vLogo:SetWide(nLogoW)
+			vLogo:Dock(LEFT)
+			vLogo:DockMargin(0, 0, nEcart, 0)
+			vLogo:SetMouseInputEnabled(false)
+			vLogo.Paint = function(self, w, h)
+				surface.SetDrawColor(255, 255, 255, 255)
+				surface.SetMaterial(matLogo)
+				surface.DrawTexturedRect(0, 0, w, h)
+			end
+			iCumulW = iCumulW + nLogoW + nEcart
+		end
 	end
 
 	vButtons:SetWide(iCumulW)
 	vButtons:CenterHorizontal()
-	vButtons:SetX(vButtons:GetX() + 83)
 end
 
 local tMats = {
@@ -1633,6 +1822,10 @@ function M_Fight:SkillTree(nID)
 	local tClan
 	local sPlayerClan = pLocal:GetClan()
 	if tCategory.bClan then tClan = Solve.Naruto.Clan:GetClan(sPlayerClan) end
+	TFJ2.Polices()
+	local tTFJCols = TFJ2.Colonnes(tCategory, pLocal, sPlayerClan, tClan, VH)
+	local tTFJColParID = {}
+	for _, c in ipairs(tTFJCols) do tTFJColParID[c.sID] = c end
 	M_vSkillTree = vFrame
 	local vFirst, vSecond
 
@@ -1738,8 +1931,8 @@ function M_Fight:SkillTree(nID)
 		local bHasBoth = (bHasFirst and sSecondNature ~= "")
 		vFirst = vgui.Create("DButton", vFrame)
 		vFirst:SetSize(VH * 40, VH * 6)
-		vFirst:SetY(VH * 82)
-		vFirst:CenterHorizontal()
+		-- TFJ v2 : en bas a droite, hors des colonnes
+		vFirst:SetPos(ScrW() - VH * 43, VH * 86)
 		vFirst:SetText("")
 		vFirst.Paint = function(self, w, h)
 			local sText
@@ -1774,8 +1967,7 @@ function M_Fight:SkillTree(nID)
 		local bHasSecond = (sSecondNature ~= "")
 		vSecond = vgui.Create("DButton", vFrame)
 		vSecond:SetSize(VH * 40, VH * 6)
-		vSecond:SetY(VH * 90)
-		vSecond:CenterHorizontal()
+		vSecond:SetPos(ScrW() - VH * 43, VH * 93)
 		vSecond:SetText("")
 		vSecond.Paint = function(self, w, h)
 			local sText = bHasSecond and "Relancez votre élément" or "Choisissez votre seconde nature !"
@@ -1816,54 +2008,13 @@ function M_Fight:SkillTree(nID)
 			end
 		end
 
-		-- TFJ : fond transparent (on voit le jeu), voile léger + icônes/noms des arbres
-		surface.SetDrawColor(0, 0, 0, 150)
-		surface.DrawRect(0, 0, w, h)
-		local sCalque = tKekkei and ("kg_" .. tostring(tKekkei.sID) .. ".png") or (tTFJCalques[tCategory.sName] and tTFJCalques[tCategory.sName] .. ".png")
-		local matCalque = sCalque and TFJ_Mat(sCalque)
-		surface.SetDrawColor(255, 255, 255, 255)
-		if matCalque then
-			surface.SetMaterial(matCalque)
-			surface.DrawTexturedRect(0, 0, w, h)
-		end
-
-		-- Clan logo
-		if tClan then
-			local matLogo, iLogoW, iLogoH = Solve:GetMaterial(tClan.sImgurId, nil, true)
-			iLogoW = math.min(iLogoW, VH * 15)
-			iLogoH = math.min(iLogoH, VH * 15)
-			if matLogo then
-				surface.SetMaterial(matLogo)
-				surface.DrawTexturedRectRotated(w / 2, h * 0.74, iLogoW, iLogoH, 0)
-			end
-		end
-
-		local iSkillsPointsW = draw.SimpleText(pLocal:GetNetworkVar("nSkillPoint", 0), "NRP::Poppins::2D::15::1000", VH * 12, VH * 7, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		iSkillsPointsW = iSkillsPointsW * 1.1
-		local nW = draw.SimpleText("Compétence", "NRP::Poppins::2D::4::700", VH * 12 + iSkillsPointsW, VH * 9.5, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		draw.SimpleText("points", "NRP::Poppins::2D::4::500", VH * 12 + iSkillsPointsW + nW, VH * 9.5, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		draw.SimpleText("Disponible", "NRP::Poppins::2D::3::500", VH * 12 + iSkillsPointsW, VH * 12.7, TFJ_ROUGE_CLAIR, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		local nW = draw.SimpleText("points de compétence", "NRP::Poppins::2D::4::500", w - VH * 12, VH * 9.5, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
-		draw.SimpleText("Reset ", "NRP::Poppins::2D::4::700", w - VH * 12 - nW, VH * 9.5, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
-		i_SizeW, i_SizeH = draw.SimpleText("Achetez une réinitialisation de relance", "NRP::Poppins::2D::3::500", w - VH * 12, VH * 12.7, TFJ_ROUGE_CLAIR, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
-		i_SizeH = i_SizeH * 0.8
-		if matBasket then
-			surface.SetDrawColor(TFJ_ROUGE_CLAIR)
-			surface.SetMaterial(matBasket)
-			surface.DrawTexturedRect(w - VH * 12 - i_SizeW - VH - i_SizeH, VH * 13, i_SizeH, i_SizeH)
-		end
-
-		if not IsValid(self.vButtonBuySecondReroll) then
-			self.vButtonBuySecondReroll = vgui.Create("DButton", vFrame)
-			self.vButtonBuySecondReroll:SetSize(i_SizeW + VH + i_SizeH, i_SizeH)
-			self.vButtonBuySecondReroll:SetPos(w - VH * 12 - i_SizeW - VH - i_SizeH, VH * 13)
-			self.vButtonBuySecondReroll:SetText("")
-			self.vButtonBuySecondReroll:SetPaintBackground(false)
-			self.vButtonBuySecondReroll.DoClick = function()
-				-- TODO: Put here the redirection to the shop
-				Solve.Naruto.Boutique:DrawShop()
-				Solve.Naruto.Boutique:SetPage("chests_reroll")
-			end
+		-- TFJ v2 : fond sombre, une colonne par arbre (degrade + illustration). Les liens sont dessines par-dessus.
+		-- Retire : calques Solve, logo de clan, textes "Reset points de compétence" / "Achetez une réinitialisation de relance".
+		TFJ2.Fond(w, h, VH)
+		local nMX, nMY = self:CursorPos()
+		for _, c in ipairs(tTFJCols) do
+			local bSurvol = nMX >= c.x and nMX <= c.x + c.w and nMY >= c.y and nMY <= c.y + c.h
+			TFJ2.Colonne(c, bSurvol or (vSelect and vSelect.sParent == c.sID), VH)
 		end
 
 		for _, tConfigTree in pairs(tCategory.tTrees) do
@@ -1903,17 +2054,13 @@ function M_Fight:SkillTree(nID)
 
 			surface.SetAlphaMultiplier(iOldAlpha)
 		end
+
+		for _, c in ipairs(tTFJCols) do TFJ2.Nom(c, VH) end
+		TFJ2.BasGauche(w, h, VH, pLocal:GetNetworkVar("nSkillPoint", 0))
 	end
 
 	local mat = Material("solve_naruto_base/tai_bottom.vmt")
 	vFrame.PaintOver = function(s, w, h)
-		if nID == 2 then
-			local awide = 1024 * (ScrW() / 1920)
-			local aheight = 512 * (ScrH() / 1080)
-			surface.SetDrawColor(255, 255, 255, 255)
-			surface.SetMaterial(mat)
-			surface.DrawTexturedRect(w / 2 - awide / 2, h - aheight, awide, aheight)
-		end
 		if IsValid(s._combatStylePanel) then
 			s._combatStylePanel:PaintManual()
 		end
@@ -1957,6 +2104,7 @@ function M_Fight:SkillTree(nID)
 			mdl:Center()
 			mdl:AlignBottom(-32)
 			bCharacterCreated = true
+			mdl:SetVisible(false)
 
 			local VH = ScrH() / 100
 			local pLocal = LocalPlayer()
@@ -1964,7 +2112,8 @@ function M_Fight:SkillTree(nID)
 			local vCombatStylePanel = vgui.Create("DPanel", vFrame)
 			local panelW, panelH = math.floor(mdl:GetWide() * 0.35), math.floor(VH * 3)
 			vCombatStylePanel:SetSize(panelW, panelH)
-			vCombatStylePanel:SetPos(mdl:GetX() + mdl:GetWide() / 2 - panelW / 2, mdl:GetY() + mdl:GetTall() - panelH - VH * 18)
+			-- TFJ v2 : selecteurs en bas a droite (le personnage 3D est masque, il couvrait les colonnes)
+			vCombatStylePanel:SetPos(ScrW() - VH * 3 - panelW, VH * 88)
 			vCombatStylePanel:SetPaintedManually(true)
 			local matStanceBorder = select(1, Solve:GetMaterial("stance_border"))
 			local matArrowLeft = select(1, Solve:GetMaterial("stance_left_arrow"))
@@ -2132,7 +2281,7 @@ function M_Fight:SkillTree(nID)
 			local vStancePanel = vgui.Create("DPanel", vFrame)
 			local panelW, panelH = math.floor(mdl:GetWide() * 0.35), math.floor(VH * 3)
 			vStancePanel:SetSize(panelW, panelH)
-			vStancePanel:SetPos(mdl:GetX() + mdl:GetWide() / 2 - panelW / 2, mdl:GetY() + mdl:GetTall() - panelH - VH * 12)
+			vStancePanel:SetPos(ScrW() - VH * 3 - panelW, VH * 94)
 			vStancePanel:SetPaintedManually(true)
 			local matStanceBorder = select(1, Solve:GetMaterial("stance_border"))
 			local matArrowLeft = select(1, Solve:GetMaterial("stance_left_arrow"))
@@ -2265,30 +2414,45 @@ function M_Fight:SkillTree(nID)
 		local bHasNature = true
 		if isfunction(tTree.fCheck) then bHasNature = tTree.fCheck(pLocal) end
 		local iSkillsCount = #M_Fight.tConfig.tBranch[tConfigTree.sID].tSkills
-		-- TFJ : en Natures, un étage par rang de technique (TFJ_RangTechnique), ronds du même rang côte à côte
+		-- TFJ v2 : les ronds sont places dans la colonne de leur arbre (TFJ2.Colonnes). Toutes les techniques
+		-- de l'arbre restent affichees. Natures : un etage par rang (TFJ_RangTechnique), ronds du meme rang cote a cote.
+		-- Autres onglets : une pile verticale, la premiere technique en bas.
 		local tTFJPos
-		if tCategory.sName == "Natures" and not tConfigTree.bColumn then
+		local tCol = tTFJColParID[tConfigTree.sID]
+		if tCol then
 			tTFJPos = {}
-			vFrame.tTFJLiens = vFrame.tTFJLiens or {}
-			local tEtages = {}
+			local nTaille = VH * 5.5
+			local tVisibles = {}
 			for _, tS in ipairs(M_Fight.tConfig.tBranch[tConfigTree.sID].tSkills) do
 				local tFull = M_Fight.tIDs[tS.sID]
-				if tFull and not tFull.bHidden then
+				if tFull and not tFull.bHidden then table.insert(tVisibles, tFull) end
+			end
+			if tCategory.sName == "Natures" and not tConfigTree.bColumn then
+				vFrame.tTFJLiens = vFrame.tTFJLiens or {}
+				local tEtages, iRangMax = {}, 1
+				for _, tFull in ipairs(tVisibles) do
 					local iRang = TFJ_RangTechnique(tFull)
 					tEtages[iRang] = tEtages[iRang] or {}
-					table.insert(tEtages[iRang], tS.sID)
+					table.insert(tEtages[iRang], tFull.sID)
+					iRangMax = math.max(iRangMax, iRang)
 				end
-			end
-			local tEtageDessous
-			for iRang = 1, 6 do
-				local tEtage = tEtages[iRang]
-				if tEtage then
-					local nY = nPosY - VH * (4 + 8 * (iRang - 1))
-					for k, sID in ipairs(tEtage) do
-						tTFJPos[sID] = { nPosX + VH * 4 + (k - (#tEtage + 1) / 2) * VH * 8, nY }
-						vFrame.tTFJLiens[sID] = tEtageDessous or {}
+				local tEtageDessous
+				for iRang = 1, 6 do
+					local tEtage = tEtages[iRang]
+					if tEtage then
+						local nY = tCol.y + VH * 3 + (iRangMax - iRang) * VH * 7
+						for k, sID in ipairs(tEtage) do
+							tTFJPos[sID] = { tCol.cx - nTaille / 2 + (k - (#tEtage + 1) / 2) * VH * 7, nY }
+							vFrame.tTFJLiens[sID] = tEtageDessous or {}
+						end
+						tEtageDessous = tEtage
 					end
-					tEtageDessous = tEtage
+				end
+			else
+				local n = #tVisibles
+				local nPas = math.min(VH * 8, VH * 36 / math.max(1, n - 1))
+				for k, tFull in ipairs(tVisibles) do
+					tTFJPos[tFull.sID] = { tCol.cx - nTaille / 2, tCol.y + VH * 3 + (n - k) * nPas }
 				end
 			end
 		end

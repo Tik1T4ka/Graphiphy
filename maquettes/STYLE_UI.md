@@ -1,7 +1,7 @@
 # Styles des menus TFJ
 
 Couleurs communes : noir, rouge (176, 26, 26), blanc.
-Menu F4 (arbre de compétences) : l'onglet Classe est en cours de refonte (maquette `classe/maquette_f4_classe.html`), on modifie le skill tree existant. Meme quota sur chaque onglet : 4 techniques par colonne. Chaque colonne a un degrade tire des couleurs de son illustration ; pour Clans et Kekkei Genkai (sans illustration), couleur moyenne des icones de leurs techniques, calculee en jeu (IMaterial:GetColor).
+Menu F4 (arbre de compétences) : l'onglet Classe est en cours de refonte (maquette `classe/maquette_f4_classe.html`), on modifie le skill tree existant. Meme quota de techniques qu'aujourd'hui sur chaque onglet (Natures 10, Styles 5, Classes 3 par arbre) : les 4 ronds des maquettes ne sont qu'indicatifs. Chaque colonne a un degrade tire des couleurs de son illustration ; pour Clans et Kekkei Genkai (sans illustration), couleur moyenne des icones de leurs techniques, calculee en jeu (IMaterial:GetColor).
 
 ## Style A : « lecteur de musique » (`references/style_A_lecteur_musique.png`)
 Utilisé pour : coffre, registre médical.

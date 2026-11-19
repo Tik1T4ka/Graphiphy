@@ -1,0 +1,8 @@
+A deposer avec le gestionnaire de fichiers du panel (glisser-deposer), en gardant les dossiers :
+
+  addons/tfj_skilltree/materials/tfj_skilltree/f4_*.png  ->  garrysmod/addons/tfj_skilltree/materials/tfj_skilltree/
+  resource/fonts/bebasneue-regular.ttf                   ->  garrysmod/resource/fonts/
+
+Les images sont envoyees aux joueurs par addons/tfj_skilltree/lua/autorun/server/tfj_skilltree.lua
+(tous les fichiers de materials/tfj_skilltree/), la police par lua/autorun/server/sv_tfj_polices.lua.
+Il faut un redemarrage du serveur pour que les nouveaux fichiers soient proposes au telechargement.

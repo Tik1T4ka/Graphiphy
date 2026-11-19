@@ -2,3 +2,5 @@
 -- Fichiers : garrysmod/resource/fonts/philosopher-bold.ttf et philosopher-regular.ttf
 resource.AddSingleFile("resource/fonts/philosopher-bold.ttf")
 resource.AddSingleFile("resource/fonts/philosopher-regular.ttf")
+-- Bebas Neue (licence libre OFL) : titres du skill tree F4. Fichier : garrysmod/resource/fonts/bebasneue-regular.ttf
+resource.AddSingleFile("resource/fonts/bebasneue-regular.ttf")
