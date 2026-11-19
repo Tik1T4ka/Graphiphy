@@ -51,11 +51,38 @@ M_tSkills = M_tSkills or {}
 local TFJ_FOND = Color(8, 8, 10, 175)
 local TFJ_TRAIT = Color(255, 255, 255, 16)
 local TFJ_ROUGE = Color(170, 32, 38)
+-- TFJ v2 : fenetre noire a double liseret, fine barre rouge en haut (maquettes/menu_b du depot Graphiphy)
 local function TFJ_Cadre(x, y, w, h)
-	draw.RoundedBox(3, x, y, w, h, TFJ_FOND)
-	surface.SetDrawColor(TFJ_TRAIT)
+	surface.SetDrawColor(10, 10, 11, 245)
+	surface.DrawRect(x, y, w, h)
+	surface.SetDrawColor(58, 58, 64, 255)
 	surface.DrawOutlinedRect(x, y, w, h, 1)
+	surface.SetDrawColor(29, 29, 33, 255)
+	surface.DrawOutlinedRect(x + 4, y + 4, w - 8, h - 8, 1)
+	surface.SetDrawColor(216, 38, 47, 255)
+	surface.DrawRect(x, y, w, 2)
 end
+local TFJB = {}
+local iTFJBPoliceH
+function TFJB.Polices()
+	if iTFJBPoliceH == ScrH() then return end
+	iTFJBPoliceH = ScrH()
+	local VH = ScrH() / 100
+	-- Bebas Neue : resource/fonts/bebasneue-regular.ttf (sv_tfj_polices.lua)
+	surface.CreateFont("TFJB.Onglet", { font = "Bebas Neue", size = math.floor(VH * 3.2), weight = 400, extended = true })
+	surface.CreateFont("TFJB.Titre", { font = "Bebas Neue", size = math.floor(VH * 5.6), weight = 400, extended = true })
+	surface.CreateFont("TFJB.Groupe", { font = "Bebas Neue", size = math.floor(VH * 2.9), weight = 400, extended = true })
+	surface.CreateFont("TFJB.Nom", { font = "Bebas Neue", size = math.floor(VH * 4.3), weight = 400, extended = true })
+	surface.CreateFont("TFJB.Num", { font = "Bebas Neue", size = math.floor(VH * 2.3), weight = 400, extended = true })
+	surface.CreateFont("TFJB.Kanji", { font = "MS Mincho", size = math.floor(VH * 2.4), weight = 700, extended = true })
+end
+-- couleur et kanji des groupes de natures (memes couleurs que les colonnes du F4)
+local tTFJBNatures = {
+	katon = { Color(255, 122, 26), "火" }, raiton = { Color(242, 176, 46), "雷" }, suiton = { Color(47, 155, 232), "水" },
+	futon = { Color(123, 224, 90), "風" }, doton = { Color(192, 138, 74), "土" },
+}
+-- emplacements de la barre : un peu plus petits pour laisser la place au bouton "Enregistrer dans un deck"
+local TFJB_SLOT_X, TFJB_SLOT_PAS, TFJB_SLOT_TAILLE, TFJB_SLOT_Y = 38.4, 11.2, 9.6, 53.6
 M_tSkills.tSlots = M_tSkills.tSlots or {}
 local iDeckSelected
 local function fnDrawSpells(vPanel, iDeck)
@@ -71,8 +98,8 @@ local function fnDrawSpells(vPanel, iDeck)
 	for i = 1, 6 do
 		local iSlotId = i + ((iDeck - 1) * 6)
 		local vSlot = vgui.Create("DButton", vPanel)
-		vSlot:SetSize(VH * 11, VH * 11)
-		vSlot:SetPos(VH * 3.45 + (i - 1) * VH * 13.05, VH * 53)
+		vSlot:SetSize(VH * TFJB_SLOT_TAILLE, VH * TFJB_SLOT_TAILLE)
+		vSlot:SetPos(VH * (TFJB_SLOT_X + (i - 1) * TFJB_SLOT_PAS), VH * TFJB_SLOT_Y)
 		vSlot:Droppable(slotName)
 		vSlot:SetText("")
 		vSlot.bChange = true
@@ -210,31 +237,20 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 	vMain:SetSize(VH * 119.72, VH * 66.75)
 	vMain:Center()
 	vMain.Paint = function(self, w, h)
-		-- onglets, liste des jutsus, barre des 6 sorts, fiche du sort sélectionné
+		-- TFJ v2 : barre d'onglets, fenetre principale ; fiche du sort a gauche, liste a droite, barre des 6 sorts en bas
+		TFJB.Polices()
 		TFJ_Cadre(VH * 1, VH * 0.65, VH * 117.9, VH * 5.65)
-		surface.SetDrawColor(TFJ_ROUGE)
-		surface.DrawRect(VH * 1, VH * 0.65, 3, VH * 5.65)
-		TFJ_Cadre(VH * 1, VH * 8.7, VH * 82.3, VH * 40.8)
-		surface.SetDrawColor(TFJ_TRAIT)
-		surface.DrawRect(VH * 3, VH * 16.85, VH * 78.3, 1)
-		TFJ_Cadre(VH * 1, VH * 50.8, VH * 82.3, VH * 14.5)
+		TFJ_Cadre(VH * 1, VH * 7.6, VH * 117.9, VH * 58.5)
+		surface.SetDrawColor(42, 42, 46, 255)
+		surface.DrawRect(VH * 38, VH * 16.85, VH * 79, 1)
+		surface.DrawRect(VH * 37, VH * 50.4, VH * 80.5, 1)
 		for i = 1, 6 do
-			draw.SimpleText(i, Solve:Font(0.013, 4), VH * 3.75 + (i - 1) * VH * 13.05, VH * 51.3, Color(255, 255, 255, 70), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+			draw.SimpleText(i, "TFJB.Num", VH * (TFJB_SLOT_X + (i - 1) * TFJB_SLOT_PAS + TFJB_SLOT_TAILLE / 2), VH * (TFJB_SLOT_Y - 0.3), Color(138, 138, 146), TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 		end
-		TFJ_Cadre(VH * 84.6, VH * 8.7, VH * 33.4, VH * 56.6)
-		surface.SetDrawColor(255, 255, 255, 255)
-		surface.SetMaterial(tMats["circle"])
-		surface.DrawTexturedRectRotated(VH * 101.5, VH * 20.2, VH * 17, VH * 17, 0)
-		-- local iDeck =  pLocal:GetNetworkVar("iDeckSelected", 1)
-		-- if iDeck == 3 then
-		--     draw.RoundedBox(16, VH * 1, VH * 51 - 2, VH * 82.28, VH * 14.5, Color(0, 140, 255, 5))
-		-- end
+		draw.SimpleText("Cacher les jutsus non appris", "NRP::Poppins::2D::2.5::500", VH * 41.2, VH * 15.05, Color(196, 196, 202), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 		if not nID or not M_Fight.tConfig.tSkillsCategories[nID] then return end
 		local tCategory = M_Fight.tConfig.tSkillsCategories[nID]
-		local nW = draw.SimpleText("JOURNAL ", "NRP::Poppins::2D::5::1000", VH * 3, VH * 9, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		draw.SimpleText(string.upper(tCategory.sName), "NRP::Poppins::2D::5::500", VH * 3 + nW, VH * 9, TFJ_ROUGE, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		draw.SimpleText(tCategory.sDesc, "NRP::Poppins::2D::3::500", VH * 3, VH * 12.7, Color(255, 255, 255, 150), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-		draw.SimpleText("Jutsus appris", "NRP::Poppins::2D::2.5::500", VH * 82, VH * 13.6, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+		draw.SimpleText(string.upper(tCategory.sName), "TFJB.Titre", VH * 38, VH * 8.4, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 	end
 
 	local vClose = vgui.Create("DButton", vMain)
@@ -300,8 +316,8 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 		if sSearch == "Look for ..." then sSearch = "" end
 		vSelect = nil
 		vContainer = vgui.Create("DPanel", vMain)
-		vContainer:SetSize(VH * 80, VH * 31)
-		vContainer:SetPos(VH * 3, VH * 18)
+		vContainer:SetSize(VH * 79, VH * 31)
+		vContainer:SetPos(VH * 38, VH * 18)
 		vContainer.Paint = function() end
 		local vScroll = vgui.Create("DScrollPanel", vContainer)
 		vScroll:Dock(FILL)
@@ -419,21 +435,18 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 				vCategoryHeader.cBackgroundColor = tCategory.cGradientColor and tCategory.cGradientColor or Color(0, 140, 255, 5)
 				vCategoryHeader.mGradient = Material("vgui/gradient-l")
 				vCategoryHeader.Paint = function(self, w, h)
-					local iGradientBoxX, iGradientBoxY, iGradientBoxW, iGradientBoxH = RX(0), RY(0), w, h
-					Solve.Masks.Start()
-					surface.SetDrawColor(self.cBackgroundColor)
-					surface.SetMaterial(self.mGradient)
-					surface.DrawTexturedRectRotated(iGradientBoxX + iGradientBoxW / 2, iGradientBoxY + iGradientBoxH / 2, iGradientBoxW, iGradientBoxH, 0)
-					Solve.Masks.Source()
-					draw.RoundedBox(8, iGradientBoxX, iGradientBoxY, iGradientBoxW, iGradientBoxH, color_white)
-					Solve.Masks.End()
-					if tCategory.mImage then
-						surface.SetDrawColor(ColorAlpha(color_white, 8))
-						surface.SetMaterial(tCategory.mImage)
-						surface.DrawTexturedRect(VH * 1, h / 2 - VH * 2, VH * 4, VH * 4)
+					-- TFJ v2
+					local tNat = tTFJBNatures[string.lower(tCategory.sName or "")]
+					local c = tNat and tNat[1] or ColorAlpha(self.cBackgroundColor, 255)
+					local sNom = string.upper(tCategory.sName or "")
+					sNom = (sNom == "FUTON") and "FÛTON" or sNom
+					local nW = draw.SimpleText(sNom, "TFJB.Groupe", 0, h / 2, c, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+					if tNat then nW = nW + VH * 0.8 + draw.SimpleText(tNat[2], "TFJB.Kanji", nW + VH * 0.8, h / 2, c, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER) end
+					local x0 = nW + VH * 1.2
+					for i = 0, 15 do
+						surface.SetDrawColor(c.r, c.g, c.b, 150 * (1 - i / 16))
+						surface.DrawRect(x0 + (w - x0) * i / 16, h / 2, (w - x0) / 16 + 1, 1)
 					end
-
-					draw.SimpleText(tCategory.sName, Solve:AbsFont(40), VH * 6, h / 1.8, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 				end
 
 				local vScroll = vgui.Create("DScrollPanel", Jutsu)
@@ -926,26 +939,33 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 	end
 	local bLearned = true
 
-	local nPosX = VH * 4
+	-- TFJ v2 : largeurs mesurees d'abord pour repartir les onglets sur toute la barre
+	TFJB.Polices()
+	surface.SetFont("TFJB.Onglet")
+	local tTFJLargeurs, nTFJTotal = {}, 0
 	for nCategory, tCategory in ipairs(M_Fight.tConfig.tSkillsCategories) do
-		local nSizeX = 0
-		surface.SetFont("NRP::Poppins::2D::3::500")
-		local nSizeX = surface.GetTextSize(tCategory.sName) + VH * 6
-		local nRatio = tCategory.mIcon:Width() / tCategory.mIcon:Height()
+		tTFJLargeurs[nCategory] = surface.GetTextSize(string.upper(tCategory.sName)) + VH * 3
+		nTFJTotal = nTFJTotal + tTFJLargeurs[nCategory]
+	end
+	local nTFJEcart = math.max(VH * 1, (VH * 113.9 - nTFJTotal) / math.max(1, #tTFJLargeurs - 1))
+	local nPosX = VH * 3
+	for nCategory, tCategory in ipairs(M_Fight.tConfig.tSkillsCategories) do
+		local nSizeX = tTFJLargeurs[nCategory]
+		local sNomOnglet = string.upper(tCategory.sName)
 		local vCategory = vgui.Create("DButton", vMain)
 		vCategory:SetPos(nPosX, VH * 1.1)
-		vCategory:SetSize(nSizeX, VH * 5)
+		vCategory:SetSize(nSizeX, VH * 4.8)
 		vCategory:SetText("")
 		vCategory.Paint = function(self, w, h)
 			self.iHoverLerp = Lerp(FrameTime() * 5, self.iHoverLerp or 0, (self:IsHovered() or (nID == nCategory)) and 1 or 0)
-			local nW = draw.SimpleText(tCategory.sName, Solve:Font(0.018, 3), w / 2 + VH * 2, h / 2, ColorAlpha(color_white, 50 + 205 * self.iHoverLerp), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			surface.SetDrawColor(255, 255, 255, 255)
-			surface.SetMaterial(tCategory.mIcon)
-			surface.DrawTexturedRectRotated(w / 2 + VH * 2 - nW / 2 - VH * 2.5, h / 2, VH * 3 * nRatio, VH * 3, 0)
 			if nID == nCategory then
-				surface.SetDrawColor(TFJ_ROUGE)
-				surface.DrawRect(VH * 1, h - 2, w - VH * 2, 2)
+				-- aplat rouge facon trait de pinceau
+				draw.NoTexture()
+				surface.SetDrawColor(216, 38, 47, 255)
+				surface.DrawPoly({ { x = 0, y = h * 0.14 }, { x = w * 0.06, y = 0 }, { x = w * 0.94, y = h * 0.06 }, { x = w, y = h * 0.3 }, { x = w * 0.97, y = h }, { x = w * 0.03, y = h * 0.92 } })
 			end
+			local iC = 138 + 117 * self.iHoverLerp
+			draw.SimpleText(sNomOnglet, "TFJB.Onglet", w / 2, h / 2 + 1, Color(iC, iC, iC + 8 * (1 - self.iHoverLerp)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 		end
 
 		vCategory.DoClick = function()
@@ -956,7 +976,7 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 		end
 
 		if not nPage or nPage == nCategory then vCategory:DoClick() end
-		nPosX = nPosX + nSizeX + VH * 4
+		nPosX = nPosX + nSizeX + nTFJEcart
 	end
 
 	vFrame.M_RefreshFavorites = function(self)
@@ -972,7 +992,7 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 	local matSearch = Solve:GetMaterial("solve_nrp_combat_search_bar_loupe")
 	local vText = vgui.Create("DTextEntry", vMain)
 	vText:SetSize(VH * 20, VH * 2.6)
-	vText:SetPos(VH * 62, VH * 10.5)
+	vText:SetPos(VH * 96.9, VH * 10.5)
 	vText.Paint = function(self, w, h)
 		NRP:RoundedBox(3, 0, 0, w, h, Color(0, 0, 0, 120))
 		if matSearch then
@@ -999,12 +1019,18 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 	vTextEntry.OnLoseFocus = function() vFrame:SetKeyboardInputEnabled(false) end
 	vTextEntry.Paint = function(self, w, h) self:DrawTextEntryText(cColor, cColor, cColor) end
 	local vCheck = vgui.Create("DButton", vMain)
-	vCheck:SetSize(VH * 2.4, VH * 2.4)
-	vCheck:SetPos(VH * 69.5, VH * 13.7)
+	vCheck:SetSize(VH * 2.2, VH * 2.2)
+	vCheck:SetPos(VH * 38, VH * 13.95)
 	vCheck:SetText("")
 	vCheck.Paint = function(self, w, h)
-		NRP:RoundedBoxOutlined(3, 0, 0, w, h, Color(255, 255, 255, 40), 1)
-		draw.SimpleText(bLearned and "x" or "", "NRP::Poppins::2D::3::1000", w / 2, h / 2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		surface.SetDrawColor(18, 18, 20, 255)
+		surface.DrawRect(0, 0, w, h)
+		surface.SetDrawColor(self:IsHovered() and TFJ_ROUGE or Color(102, 102, 108))
+		surface.DrawOutlinedRect(0, 0, w, h, 1)
+		if bLearned then
+			surface.SetDrawColor(216, 38, 47, 255)
+			surface.DrawRect(w * 0.25, h * 0.25, w * 0.5, h * 0.5)
+		end
 	end
 
 	vCheck.DoClick = function()
@@ -1029,38 +1055,46 @@ hook.Add("PlayerButtonDown", "NRP::Skills::Open", function(pPlayer, nKey, bForce
 	end
 
 	local vInfo = vgui.Create("DPanel", vMain)
-	vInfo:SetSize(VH * 33.6, VH * 56.5)
-	vInfo:SetPos(VH * 84.7, VH * 9)
+	vInfo:SetSize(VH * 33.5, VH * 55.4)
+	vInfo:SetPos(VH * 2.5, VH * 9.2)
 	vInfo.Paint = function(self, w, h)
+		-- TFJ v2 : fiche du sort selectionne (image dans un rond, nom, description, niveau en losanges, recharge)
+		surface.SetDrawColor(17, 17, 19, 255)
+		surface.DrawRect(0, 0, w, h)
+		surface.SetDrawColor(42, 42, 46, 255)
+		surface.DrawOutlinedRect(0, 0, w, h, 1)
 		if not vSelect then return end
-		surface.SetDrawColor(vSelect.cGradient or color_white)
-		surface.SetMaterial(tMats["gradient"])
-		surface.DrawTexturedRectRotated(w / 2, h / 2, w, h, 0)
 		surface.SetDrawColor(255, 255, 255, 255)
-		surface.SetMaterial(vSelect.mImage)
-		surface.DrawTexturedRectRotated(w / 2, VH * 11.2, VH * 13.8, VH * 13.8, 0)
-		draw.SimpleText(vSelect.sName, "NRP::Poppins::2D::4::1000", w / 2, VH * 24, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-		local sDesc = NRP:SplitText(vSelect.sDesc, w - VH * 2, "NRP::Poppins::2D::2::500")
-		local _, nY = surface.GetTextSize(sDesc)
-		draw.DrawText(sDesc, "NRP::Poppins::2D::2::500", w / 2, VH * 26, color_white, TEXT_ALIGN_CENTER)
-		local nW = 0
-		surface.SetFont("NRP::Poppins::2D::4::500")
-		nW = nW + surface.GetTextSize("Recharge : ")
-		surface.SetFont("NRP::Poppins::2D::4::1000")
-		nW = nW + surface.GetTextSize("20s")
-		nW = w / 2 - nW / 2 + draw.SimpleText("Recharge : ", "NRP::Poppins::2D::4::500", w / 2 - nW / 2, h - VH * 1, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-		local nCoolDown = (vSelect.tLevels[1] or {}).nCoolDown or 0
-		draw.SimpleText(nCoolDown .. "s", "NRP::Poppins::2D::4::1000", nW, h - VH * 1, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-		local nTotalLevel = #vSelect.tLevels
-		local nActualLevel = pLocal:HasSkill(vSelect.sID) and pLocal:HasSkill(vSelect.sID).nLevel or 0
-		nY = nY + VH * 1 + VH * 26
-		surface.SetDrawColor(255, 255, 255, 10)
-		surface.DrawRect(w / 2 - VH * 15.5, nY, VH * 31, 1)
-		if nActualLevel == 0 then
-			draw.SimpleText("Non appris", "NRP::Poppins::2D::2.5::500", w / 2, nY + VH * 1, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
-		else
-			draw.SimpleText("Niveau " .. nActualLevel .. "/" .. nTotalLevel, "NRP::Poppins::2D::2.5::500", w / 2, nY + VH * 1, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+		surface.SetMaterial(tMats["circle"])
+		surface.DrawTexturedRectRotated(w / 2, VH * 11.2, VH * 17, VH * 17, 0)
+		if vSelect.mImage then
+			surface.SetMaterial(vSelect.mImage)
+			surface.DrawTexturedRectRotated(w / 2, VH * 11.2, VH * 13.8, VH * 13.8, 0)
 		end
+		draw.SimpleText(string.upper(vSelect.sName or ""), "TFJB.Nom", w / 2, VH * 23.2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		local sDesc = NRP:SplitText(vSelect.sDesc or "", w - VH * 3, "NRP::Poppins::2D::2::500")
+		local _, nY = surface.GetTextSize(sDesc)
+		draw.DrawText(sDesc, "NRP::Poppins::2D::2::500", w / 2, VH * 26, Color(196, 196, 202), TEXT_ALIGN_CENTER)
+		local nTotalLevel = #vSelect.tLevels
+		local tAppris = pLocal:HasSkill(vSelect.sID)
+		local nActualLevel = tAppris and tAppris.nLevel or 0
+		nY = nY + VH * 2 + VH * 26
+		-- niveau : un losange par niveau, rouges jusqu'au niveau atteint
+		local nL, nPas = VH * 1.5, VH * 2.6
+		local x0 = w / 2 - (nTotalLevel - 1) * nPas / 2
+		draw.NoTexture()
+		for i = 1, nTotalLevel do
+			local bOk = i <= nActualLevel
+			surface.SetDrawColor(bOk and Color(216, 38, 47) or Color(85, 85, 92))
+			surface.DrawTexturedRectRotated(x0 + (i - 1) * nPas, nY + nL, nL, nL, 45)
+			if not bOk then
+				surface.SetDrawColor(17, 17, 19, 255)
+				surface.DrawTexturedRectRotated(x0 + (i - 1) * nPas, nY + nL, nL - 2, nL - 2, 45)
+			end
+		end
+		draw.SimpleText(nActualLevel == 0 and "Non appris" or ("Niveau " .. nActualLevel .. " / " .. nTotalLevel), "NRP::Poppins::2D::2::500", w / 2, nY + VH * 3.4, Color(138, 138, 146), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+		local nCoolDown = (vSelect.tLevels[1] or {}).nCoolDown or 0
+		draw.SimpleText("RECHARGE  " .. nCoolDown .. " S", "TFJB.Num", w / 2, h - VH * 1.5, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 	end
 
 	fnDrawSpells(vMain, pLocal:GetNetworkVar("iDeckSelected", 1))

@@ -141,28 +141,29 @@ hook.Add("Think", "TFJ.Decks.SkillMenuButton", function()
     -- Le F4 (M_Fight:SkillTree) remplit aussi M_vSkillTree mais garde le clavier : pas de bouton deck là-bas
     if vFrame:IsKeyboardInputEnabled() then return end
 
+    -- TFJ v2 : a droite des 6 emplacements de la barre, dans la fenetre du menu B (vMain : VH*119.72 x VH*66.75, centre)
     local VH = ScrH() / 100
+    local x0, y0 = (ScrW() - VH * 119.72) / 2, (ScrH() - VH * 66.75) / 2
     local vButton = vgui.Create("DButton", vFrame)
     vButton:SetText("")
-    vButton:SetSize(VH * 34, VH * 5)
-    vButton:SetPos(ScrW() / 2 - VH * 17, ScrH() / 2 + VH * 66.75 / 2 + VH * 1.5) -- sous vMain (VH*66.75 de haut, centré)
+    vButton:SetSize(VH * 12.8, VH * 11.6)
+    vButton:SetPos(x0 + VH * 105.1, y0 + VH * 52.2)
     vButton.Paint = function(self, w, h)
-        -- TFJ : bouton facon papier et encre, assorti au menu B
-        if not TFJ_DeckPolice then
-            TFJ_DeckPolice = true
-            surface.CreateFont("TFJP::Bouton", { font = "Georgia", size = math.floor(ScrH() * 0.021), weight = 700, extended = true, antialias = true })
+        if not TFJ_DeckPolice2 then
+            TFJ_DeckPolice2 = true
+            surface.CreateFont("TFJD.Grand", { font = "Bebas Neue", size = math.floor(VH * 3.1), weight = 400, extended = true })
+            surface.CreateFont("TFJD.Petit", { font = "Bebas Neue", size = math.floor(VH * 1.5), weight = 400, extended = true })
+            surface.CreateFont("TFJD.Bouton", { font = "Bebas Neue", size = math.floor(VH * 2.5), weight = 400, extended = true })
         end
         local bSurvol = self:IsHovered()
-        surface.SetDrawColor(0, 0, 0, 110)
-        surface.DrawRect(3, 4, w, h)
-        surface.SetDrawColor(bSurvol and Color(160, 32, 28) or Color(229, 214, 182))
-        surface.DrawRect(0, 0, w, h)
-        local cEncre = bSurvol and Color(229, 214, 182) or Color(36, 26, 19)
-        surface.SetDrawColor(cEncre.r, cEncre.g, cEncre.b, 210)
-        surface.DrawOutlinedRect(3, 3, w - 6, h - 6, 2)
-        surface.SetDrawColor(cEncre.r, cEncre.g, cEncre.b, 80)
-        surface.DrawOutlinedRect(7, 7, w - 14, h - 14, 1)
-        draw.SimpleText("Enregistrer la barre comme deck", "TFJP::Bouton", w / 2, h / 2, cEncre, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText("ENREGISTRER", "TFJD.Grand", w / 2, h * 0.02, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText("D A N S   U N   D E C K", "TFJD.Petit", w / 2, h * 0.32, Color(138, 138, 146), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        -- aplat rouge facon trait de pinceau
+        local by, bh = h * 0.55, h * 0.36
+        draw.NoTexture()
+        surface.SetDrawColor(bSurvol and Color(240, 60, 68) or Color(216, 38, 47))
+        surface.DrawPoly({ { x = 0, y = by + bh * 0.12 }, { x = w * 0.08, y = by }, { x = w * 0.92, y = by + bh * 0.08 }, { x = w, y = by + bh * 0.35 }, { x = w * 0.96, y = by + bh }, { x = w * 0.04, y = by + bh * 0.9 } })
+        draw.SimpleText("+ NOUVEAU DECK", "TFJD.Bouton", w / 2, by + bh / 2 + 1, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
     vButton.DoClick = function()
         Derma_StringRequest("Nouveau deck", "Nom du deck (la barre de sorts actuelle sera enregistrée) :", "", function(sName)
