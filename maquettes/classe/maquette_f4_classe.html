@@ -18,15 +18,18 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 .slot img.ko{display:none}
 .slot:has(img:not(.ko)){border:none;color:transparent}
 /* onglets du haut */
-.nav{position:absolute;top:34px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:46px}
+.nav{position:absolute;top:34px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:38px}
 .nav a{font-size:34px;color:var(--gris);padding-bottom:6px;border-bottom:2px solid transparent}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav a img{width:30px;height:30px;opacity:.6}
+.nav a.on img{opacity:1}
 .nav a.on{color:var(--blanc);border-color:var(--rougeV)}
 .nav .logo{position:relative;width:190px;height:130px;margin:0 6px}
 /* colonnes */
 .col{position:absolute;top:175px;width:330px;height:820px}
 .col:before{content:"";position:absolute;inset:0 20px 80px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(176,26,26,.12) 70%,transparent);border:1px solid #1d1d21}
 .col.on:before{border-color:rgba(216,38,47,.6);background:linear-gradient(180deg,rgba(216,38,47,.10),rgba(216,38,47,.22) 70%,transparent)}
-.palier{position:absolute;left:70px;display:flex;align-items:center;gap:18px}
+.palier{position:absolute;left:0;right:0;display:flex;justify-content:center}
 /* icone de la technique : reprise telle quelle du skill tree existant */
 .palier .gem{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,#2a2a2e,#151517 70%);border:1px solid #3a3a40}
 .val{font-size:42px;line-height:1;display:flex;align-items:center;gap:6px}
@@ -47,45 +50,45 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 </head>
 <body>
 <nav class="nav t">
-  <a>JUTSU</a><a class="on">CLASSE</a>
+  <a><img src="../f4_icones/onglet_natures.png">NATURES</a><a><img src="../f4_icones/onglet_styles.png">STYLES</a>
   <div class="slot logo">logo.png<img src="images/logo.png" onerror="this.className='ko'"></div>
-  <a>ART DE COMBAT</a><a>FORMES</a>
+  <a class="on"><img src="../f4_icones/onglet_classes.png">CLASSES</a><a><img src="../f4_icones/onglet_clans.png">CLANS</a><a><img src="../f4_icones/onglet_kekkei.png">KEKKEI GENKAI</a>
 </nav>
 
 
 <!-- 4 colonnes = 4 classes du skill tree, 4 techniques chacune (icones existantes) -->
 <div class="col" style="left:370px">
-  <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>28</div></div></div>
-  <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>21</div></div></div>
-  <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>14</div></div></div>
-  <div class="palier" style="top:360px"><span class="gem"></span><div><div class="val t"><i>▲</i>7</div></div></div>
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
   <div class="slot illu">vitesse.png<img src="images/vitesse.png" onerror="this.className='ko'"></div>
   <div class="nom"><div class="t">COMBATTANT</div></div>
 </div>
 
 <div class="col on" style="left:725px">
-  <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>12</div></div></div>
-  <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>9</div></div></div>
-  <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>6</div></div></div>
-  <div class="palier" style="top:360px"><span class="gem"></span><div><div class="val t"><i>▲</i>3</div></div></div>
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
   <div class="slot illu">degats.png<img src="images/degats.png" onerror="this.className='ko'"></div>
   <div class="nom"><div class="t">MIRAGE</div></div>
 </div>
 
 <div class="col" style="left:1080px">
-  <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>300</div><div class="sous">régénération 10 %</div></div></div>
-  <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>225</div><div class="sous">régénération 10 %</div></div></div>
-  <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>150</div><div class="sous">régénération 7,5 %</div></div></div>
-  <div class="palier" style="top:360px"><span class="gem"></span><div><div class="val t"><i>▲</i>75</div><div class="sous">régénération 2,5 %</div></div></div>
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
   <div class="slot illu">sante.png<img src="images/sante.png" onerror="this.className='ko'"></div>
   <div class="nom"><div class="t">MÉDECIN</div></div>
 </div>
 
 <div class="col" style="left:1435px">
-  <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>400</div><div class="sous">recharge −20 %</div></div></div>
-  <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>300</div><div class="sous">recharge −15 %</div></div></div>
-  <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>200</div><div class="sous">recharge −10 %</div></div></div>
-  <div class="palier" style="top:360px"><span class="gem"></span><div><div class="val t"><i>▲</i>100</div><div class="sous">recharge −5 %</div></div></div>
+  <div class="palier" style="top:45px"><span class="gem"></span></div>
+  <div class="palier" style="top:150px"><span class="gem"></span></div>
+  <div class="palier" style="top:255px"><span class="gem"></span></div>
+  <div class="palier" style="top:360px"><span class="gem"></span></div>
   <div class="slot illu">chakra.png<img src="images/chakra.png" onerror="this.className='ko'"></div>
   <div class="nom"><div class="t">ROBUSTE</div></div>
 </div>
