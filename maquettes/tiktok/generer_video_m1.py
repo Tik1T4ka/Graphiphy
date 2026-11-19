@@ -17,7 +17,7 @@ CLANS = [
     ("ABURAME",  "Nuée d'insectes sur la cible",        [(88.3, 91.8)], 950),
     ("ENSHO",    "Futon amélioré : tornade de vent",   [(104.6, 106.2), (107.9, 109.0)], 950),
     ("MUGEN",    "Explosion d'ombre à 70 dégâts",       [(124.5, 126.3), (128.5, 129.7)], 960),
-    ("AYATSURI", "Marionnette et fils de chakra",       [(136.9, 140.4)], 900),
+    ("AYATSURI", "Marionnette et fils de chakra",       [(137.25, 140.75)], 900),
     ("JISHAKU",  "Sable doré magnétique",               [(157.2, 160.9)], 950),
 ]
 T_INTRO = 2.5
