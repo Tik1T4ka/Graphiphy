@@ -22,11 +22,6 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 .nav a{font-size:34px;color:var(--gris);padding-bottom:6px;border-bottom:2px solid transparent}
 .nav a.on{color:var(--blanc);border-color:var(--rougeV)}
 .nav .logo{position:relative;width:190px;height:130px;margin:0 6px}
-/* menu de gauche */
-.gauche{position:absolute;left:0;top:500px;width:250px}
-.gauche div{display:flex;align-items:center;gap:14px;padding:14px 24px;font-size:30px;color:var(--gris)}
-.gauche div.on{color:var(--blanc);background:linear-gradient(90deg,rgba(216,38,47,.35),transparent);border-left:3px solid var(--rougeV)}
-.gauche .ic{position:relative;width:32px;height:32px;font-size:9px}
 /* colonnes */
 .col{position:absolute;top:175px;width:330px;height:820px}
 .col:before{content:"";position:absolute;inset:0 20px 80px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(176,26,26,.12) 70%,transparent);border:1px solid #1d1d21}
@@ -44,13 +39,10 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 .nom .t:before{content:"";position:absolute;inset:6px -6px 0;z-index:-1;background:linear-gradient(90deg,transparent,#3a0a0c 18%,#5a0f12 50%,#3a0a0c 82%,transparent);clip-path:polygon(0 30%,6% 8%,22% 16%,40% 0,63% 12%,80% 2%,96% 14%,100% 60%,92% 92%,70% 82%,48% 100%,26% 86%,8% 96%)}
 .nom svg{width:46px;height:46px}
 /* bas */
-.mascotte{left:0;top:810px;width:230px;height:270px}
-.gemmes{position:absolute;left:150px;top:965px;display:flex;align-items:flex-end;gap:10px}
-.gemmes b{font-family:'Bebas Neue';font-size:120px;line-height:.8;font-weight:400}
-.gemmes span{font-size:46px;line-height:1}
-.jetons{position:absolute;right:50px;top:1010px;display:flex;align-items:center;gap:14px;font-size:40px}
-.jetons .slot{position:relative;width:52px;height:52px;font-size:8px}
-.jetons i{font-style:normal;color:var(--rougeV)}
+.mascotte{left:0;top:640px;width:340px;height:330px}
+.gemmes{position:absolute;left:40px;top:975px;display:flex;align-items:flex-end;gap:10px}
+.gemmes b{font-family:'Bebas Neue';font-size:96px;line-height:.8;font-weight:400}
+.gemmes span{font-size:30px;line-height:1}
 </style>
 </head>
 <body>
@@ -60,13 +52,9 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <a>ART DE COMBAT</a><a>FORMES</a>
 </nav>
 
-<div class="gauche t">
-  <div class="on"><span class="slot ic">ico_classe<img src="images/ico_classe.png" onerror="this.className='ko'"></span>CLASSE</div>
-  <div><span class="slot ic">ico_gemme<img src="images/ico_gemme.png" onerror="this.className='ko'"></span>GEMMES</div>
-</div>
 
 <!-- 4 colonnes = 4 classes du skill tree, 4 techniques chacune (icones existantes) -->
-<div class="col" style="left:300px">
+<div class="col" style="left:370px">
   <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>28</div></div></div>
   <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>21</div></div></div>
   <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>14</div></div></div>
@@ -75,7 +63,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <div class="nom"><div class="t">COMBATTANT</div></div>
 </div>
 
-<div class="col on" style="left:655px">
+<div class="col on" style="left:725px">
   <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>12</div></div></div>
   <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>9</div></div></div>
   <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>6</div></div></div>
@@ -84,7 +72,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <div class="nom"><div class="t">MIRAGE</div></div>
 </div>
 
-<div class="col" style="left:1010px">
+<div class="col" style="left:1080px">
   <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>300</div><div class="sous">régénération 10 %</div></div></div>
   <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>225</div><div class="sous">régénération 10 %</div></div></div>
   <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>150</div><div class="sous">régénération 7,5 %</div></div></div>
@@ -93,7 +81,7 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
   <div class="nom"><div class="t">MÉDECIN</div></div>
 </div>
 
-<div class="col" style="left:1365px">
+<div class="col" style="left:1435px">
   <div class="palier" style="top:45px"><span class="gem"></span><div><div class="val t"><i>▲</i>400</div><div class="sous">recharge −20 %</div></div></div>
   <div class="palier" style="top:150px"><span class="gem"></span><div><div class="val t"><i>▲</i>300</div><div class="sous">recharge −15 %</div></div></div>
   <div class="palier" style="top:255px"><span class="gem"></span><div><div class="val t"><i>▲</i>200</div><div class="sous">recharge −10 %</div></div></div>
@@ -103,7 +91,6 @@ body{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:Po
 </div>
 
 <div class="slot mascotte">mascotte.png<img src="images/mascotte.png" onerror="this.className='ko'"></div>
-<div class="gemmes t"><b>34</b><span>GEMMES</span></div>
-<div class="jetons t"><span class="slot">ico_jeton<img src="images/ico_jeton.png" onerror="this.className='ko'"></span><span><i>×2</i> JETONS DE RÉINITIALISATION</span></div>
+<div class="gemmes t"><b>34</b><span>POINTS DE<br>COMPÉTENCE</span></div>
 </body>
 </html>
