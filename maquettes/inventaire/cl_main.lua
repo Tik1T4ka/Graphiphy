@@ -60,7 +60,8 @@ function TFJInv.Degrade(x, y, w, h, c1, a1, c2, a2)
 	for i = 0, n - 1 do
 		local f = i / (n - 1)
 		surface.SetDrawColor(Lerp(f, c1.r, c2.r), Lerp(f, c1.g, c2.g), Lerp(f, c1.b, c2.b), Lerp(f, a1, a2))
-		surface.DrawRect(x, math.floor(y + i * h / n), w, math.ceil(h / n) + 1)
+		local y0, y1 = math.floor(y + i * h / n), math.floor(y + (i + 1) * h / n)
+		surface.DrawRect(x, y0, w, y1 - y0)
 	end
 end
 function TFJInv.Fond(w, h)

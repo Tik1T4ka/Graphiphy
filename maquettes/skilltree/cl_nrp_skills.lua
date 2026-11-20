@@ -1417,7 +1417,8 @@ function TFJ2.Degrade(x, y, w, h, c1, a1, c2, a2)
 	for i = 0, n - 1 do
 		local f = i / (n - 1)
 		surface.SetDrawColor(Lerp(f, c1.r, c2.r), Lerp(f, c1.g, c2.g), Lerp(f, c1.b, c2.b), Lerp(f, a1, a2))
-		surface.DrawRect(x, math.floor(y + i * hb), w, math.ceil(hb) + 1)
+		local y0, y1 = math.floor(y + i * hb), math.floor(y + (i + 1) * hb)
+		surface.DrawRect(x, y0, w, y1 - y0)
 	end
 end
 
@@ -1489,7 +1490,7 @@ function TFJ2.Colonnes(tCategory, pLocal, sPlayerClan, tClan, VH)
 end
 
 function TFJ2.Fond(w, h, VH)
-	surface.SetDrawColor(9, 9, 10, 235)
+	surface.SetDrawColor(9, 9, 10, 250)
 	surface.DrawRect(0, 0, w, h)
 	TFJ2.Degrade(0, h * 0.55, w, h * 0.45, TFJ2_ROUGE_SOMBRE, 0, Color(120, 18, 18), 110)
 end
@@ -1521,7 +1522,8 @@ function TFJ2.Nom(c, VH)
 	for i = 0, 23 do
 		local f = 1 - math.abs(i / 23 * 2 - 1)
 		surface.SetDrawColor(TFJ2_ROUGE_SOMBRE.r, TFJ2_ROUGE_SOMBRE.g, TFJ2_ROUGE_SOMBRE.b, 230 * math.min(1, f * 2.2))
-		surface.DrawRect(c.cx - bW / 2 + i * bW / 24, y - bH / 2 + VH * 0.4, bW / 24 + 1, bH)
+		local x0, x1 = math.floor(c.cx - bW / 2 + i * bW / 24), math.floor(c.cx - bW / 2 + (i + 1) * bW / 24)
+		surface.DrawRect(x0, y - bH / 2 + VH * 0.4, x1 - x0, bH)
 	end
 	draw.SimpleText(c.sNom, sFont, c.cx, y, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 end
@@ -1966,7 +1968,7 @@ function M_Fight:SkillTree(nID)
 		vFirst = vgui.Create("DButton", vFrame)
 		vFirst:SetSize(VH * 40, VH * 6)
 		-- TFJ v2 : en bas a droite, hors des colonnes
-		vFirst:SetPos(ScrW() - VH * 43, VH * 86)
+		vFirst:SetPos(ScrW() - VH * 48, VH * 2.5)
 		vFirst:SetText("")
 		vFirst.Paint = function(self, w, h)
 			local sText
@@ -2001,7 +2003,7 @@ function M_Fight:SkillTree(nID)
 		local bHasSecond = (sSecondNature ~= "")
 		vSecond = vgui.Create("DButton", vFrame)
 		vSecond:SetSize(VH * 40, VH * 6)
-		vSecond:SetPos(ScrW() - VH * 43, VH * 93)
+		vSecond:SetPos(ScrW() - VH * 48, VH * 9)
 		vSecond:SetText("")
 		vSecond.Paint = function(self, w, h)
 			local sText = bHasSecond and "Relancez votre élément" or "Choisissez votre seconde nature !"
